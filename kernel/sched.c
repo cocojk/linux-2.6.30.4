@@ -3845,6 +3845,14 @@ static DEFINE_PER_CPU(cpumask_var_t, load_balance_tmpmask);
 /*
  * Check this_cpu to ensure it is balanced within domain. Attempt to move
  * tasks if there is an imbalance.
+ * 각 최소 연산 단위를 'group'이라 부르며, struct sched_group 이라는 자료구조를 사용한다.
+ * 'group'을 하드웨어적인 특성에 따라 'domain'으로 분류하며, 이는 각 레벨별로 struct sched_domain이라는 자료구조로 관리된다.
+ * 예를 들어 SMP(symmetric multi processor)에서 dual-core 2 chip cpu의 경우 (hyper-threading)
+ * 0 2 1 3   4 6 5 7 로 cpu 번호가 할당 된 경우( 0 2 1 3(4 6 5 7) 같은 chip에 존재)
+ * 0 2 , 1 3 , 4 6 , 5 7 로 hyper-threading level domain
+ * 0 2 1 3 , 4 6 5 7 로 multi core level domain
+ * 0 2 1 3 4 6 5 7 로 multi chip level domain이 잡힌다.
+ * NUMA(non-uniform memory access) 구조의 경우, cpu 부하 뿐만 아니라, 메모리 접근 시간의 차이 등도 고려된다.
  */
 static int load_balance(int this_cpu, struct rq *this_rq,
 			struct sched_domain *sd, enum cpu_idle_type idle,

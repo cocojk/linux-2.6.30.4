@@ -1,4 +1,4 @@
-cmd_arch/x86/kernel/asm-offsets.s := gcc -Wp,-MD,arch/x86/kernel/.asm-offsets.s.d  -nostdinc -isystem /usr/lib/gcc/x86_64-linux-gnu/4.8/include -Iinclude  -I/home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include -include include/linux/autoconf.h -D__KERNEL__ -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -Werror-implicit-function-declaration -fno-delete-null-pointer-checks -O2 -m64 -mtune=generic -mno-red-zone -mcmodel=kernel -funit-at-a-time -maccumulate-outgoing-args -fstack-protector -fstack-protector-all -pipe -Wno-sign-compare -fno-asynchronous-unwind-tables -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -Wframe-larger-than=1024 -fno-omit-frame-pointer -fno-optimize-sibling-calls -g -pg -Wdeclaration-after-statement -Wno-pointer-sign -fno-strict-overflow -fno-dwarf2-cfi-asm   -D"KBUILD_STR(s)=\#s" -D"KBUILD_BASENAME=KBUILD_STR(asm_offsets)"  -D"KBUILD_MODNAME=KBUILD_STR(asm_offsets)" -D"DEBUG_HASH=16" -D"DEBUG_HASH2=7" -fverbose-asm -S -o arch/x86/kernel/asm-offsets.s arch/x86/kernel/asm-offsets.c
+cmd_arch/x86/kernel/asm-offsets.s := gcc -Wp,-MD,arch/x86/kernel/.asm-offsets.s.d  -nostdinc -isystem /usr/lib/gcc/x86_64-linux-gnu/4.8/include -Iinclude  -I/home/jkr555/linux-2.6.30.4/arch/x86/include -include include/linux/autoconf.h -D__KERNEL__ -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -Werror-implicit-function-declaration -fno-delete-null-pointer-checks -O2 -m64 -mtune=generic -mno-red-zone -mcmodel=kernel -funit-at-a-time -maccumulate-outgoing-args -fstack-protector -fstack-protector-all -pipe -Wno-sign-compare -fno-asynchronous-unwind-tables -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -Wframe-larger-than=1024 -fno-omit-frame-pointer -fno-optimize-sibling-calls -g -pg -Wdeclaration-after-statement -Wno-pointer-sign -fno-strict-overflow -fno-dwarf2-cfi-asm   -D"KBUILD_STR(s)=\#s" -D"KBUILD_BASENAME=KBUILD_STR(asm_offsets)"  -D"KBUILD_MODNAME=KBUILD_STR(asm_offsets)" -D"DEBUG_HASH=16" -D"DEBUG_HASH2=7" -fverbose-asm -S -o arch/x86/kernel/asm-offsets.s arch/x86/kernel/asm-offsets.c
 
 deps_arch/x86/kernel/asm-offsets.s := \
   arch/x86/kernel/asm-offsets.c \
@@ -8,14 +8,14 @@ deps_arch/x86/kernel/asm-offsets.s := \
     $(wildcard include/config/paravirt.h) \
     $(wildcard include/config/xen.h) \
   include/linux/crypto.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/atomic.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/atomic_64.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/atomic.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/atomic_64.h \
   include/linux/types.h \
     $(wildcard include/config/uid16.h) \
     $(wildcard include/config/lbd.h) \
     $(wildcard include/config/phys/addr/t/64bit.h) \
     $(wildcard include/config/64bit.h) \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/types.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/types.h \
     $(wildcard include/config/x86/64.h) \
     $(wildcard include/config/highmem64g.h) \
   include/asm-generic/int-ll64.h \
@@ -30,14 +30,14 @@ deps_arch/x86/kernel/asm-offsets.s := \
     $(wildcard include/config/arch/supports/optimized/inlining.h) \
     $(wildcard include/config/optimize/inlining.h) \
   include/linux/compiler-gcc4.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/posix_types.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/posix_types_64.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/alternative.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/posix_types.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/posix_types_64.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/alternative.h \
     $(wildcard include/config/smp.h) \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/asm.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/cpufeature.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/asm.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/cpufeature.h \
     $(wildcard include/config/x86/invlpg.h) \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/required-features.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/required-features.h \
     $(wildcard include/config/x86/minimum/cpu/family.h) \
     $(wildcard include/config/math/emulation.h) \
     $(wildcard include/config/x86/pae.h) \
@@ -49,21 +49,21 @@ deps_arch/x86/kernel/asm-offsets.s := \
     $(wildcard include/config/generic/find/first/bit.h) \
     $(wildcard include/config/generic/find/last/bit.h) \
     $(wildcard include/config/generic/find/next/bit.h) \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/bitops.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/bitops.h \
   include/asm-generic/bitops/sched.h \
   include/asm-generic/bitops/hweight.h \
   include/asm-generic/bitops/fls64.h \
   include/asm-generic/bitops/ext2-non-atomic.h \
   include/asm-generic/bitops/le.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/byteorder.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/byteorder.h \
   include/linux/byteorder/little_endian.h \
   include/linux/swab.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/swab.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/swab.h \
     $(wildcard include/config/x86/bswap.h) \
   include/linux/byteorder/generic.h \
   include/asm-generic/bitops/minix.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/cmpxchg.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/cmpxchg_64.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/cmpxchg.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/cmpxchg_64.h \
   include/asm-generic/atomic.h \
   include/linux/module.h \
     $(wildcard include/config/modules.h) \
@@ -80,28 +80,28 @@ deps_arch/x86/kernel/asm-offsets.s := \
     $(wildcard include/config/debug/list.h) \
   include/linux/poison.h \
   include/linux/prefetch.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/processor.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/processor.h \
     $(wildcard include/config/x86/vsmp.h) \
     $(wildcard include/config/cc/stackprotector.h) \
     $(wildcard include/config/x86/ds.h) \
     $(wildcard include/config/x86/ptrace/bts.h) \
     $(wildcard include/config/x86/debugctlmsr.h) \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/processor-flags.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/processor-flags.h \
     $(wildcard include/config/vm86.h) \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/vm86.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/ptrace.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/ptrace-abi.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/segment.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/cache.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/vm86.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/ptrace.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/ptrace-abi.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/segment.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/cache.h \
     $(wildcard include/config/x86/l1/cache/shift.h) \
   include/linux/init.h \
     $(wildcard include/config/hotplug.h) \
   include/linux/section-names.h \
   include/linux/stringify.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/math_emu.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/sigcontext.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/current.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/percpu.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/math_emu.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/sigcontext.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/current.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/percpu.h \
     $(wildcard include/config/x86/64/smp.h) \
   include/asm-generic/percpu.h \
     $(wildcard include/config/debug/preempt.h) \
@@ -110,11 +110,11 @@ deps_arch/x86/kernel/asm-offsets.s := \
     $(wildcard include/config/nr/cpus.h) \
     $(wildcard include/config/base/small.h) \
   include/linux/percpu-defs.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/system.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/system.h \
     $(wildcard include/config/x86/32/lazy/gs.h) \
     $(wildcard include/config/x86/ppro/fence.h) \
     $(wildcard include/config/x86/oostore.h) \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/nops.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/nops.h \
     $(wildcard include/config/mk7.h) \
   include/linux/kernel.h \
     $(wildcard include/config/preempt/voluntary.h) \
@@ -127,7 +127,7 @@ deps_arch/x86/kernel/asm-offsets.s := \
     $(wildcard include/config/ftrace/mcount/record.h) \
   /usr/lib/gcc/x86_64-linux-gnu/4.8/include/stdarg.h \
   include/linux/linkage.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/linkage.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/linkage.h \
     $(wildcard include/config/x86/alignment/16.h) \
   include/linux/log2.h \
     $(wildcard include/config/arch/has/ilog2/u32.h) \
@@ -135,10 +135,10 @@ deps_arch/x86/kernel/asm-offsets.s := \
   include/linux/typecheck.h \
   include/linux/ratelimit.h \
   include/linux/param.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/param.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/param.h \
     $(wildcard include/config/hz.h) \
   include/linux/dynamic_debug.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/bug.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/bug.h \
     $(wildcard include/config/bug.h) \
     $(wildcard include/config/debug/bugverbose.h) \
   include/asm-generic/bug.h \
@@ -149,32 +149,32 @@ deps_arch/x86/kernel/asm-offsets.s := \
     $(wildcard include/config/preempt/tracer.h) \
     $(wildcard include/config/trace/irqflags/support.h) \
     $(wildcard include/config/x86.h) \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/irqflags.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/irqflags.h \
     $(wildcard include/config/debug/lock/alloc.h) \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/page.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/page_types.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/page.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/page_types.h \
   include/linux/const.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/page_64_types.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/page_64_types.h \
     $(wildcard include/config/physical/start.h) \
     $(wildcard include/config/flatmem.h) \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/page_64.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/page_64.h \
   include/asm-generic/memory_model.h \
     $(wildcard include/config/discontigmem.h) \
     $(wildcard include/config/sparsemem/vmemmap.h) \
     $(wildcard include/config/sparsemem.h) \
   include/asm-generic/page.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/pgtable_types.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/pgtable_types.h \
     $(wildcard include/config/compat/vdso.h) \
     $(wildcard include/config/proc/fs.h) \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/pgtable_64_types.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/msr.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/msr-index.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/errno.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/pgtable_64_types.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/msr.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/msr-index.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/errno.h \
   include/asm-generic/errno.h \
   include/asm-generic/errno-base.h \
   include/linux/errno.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/desc_defs.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/ds.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/desc_defs.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/ds.h \
   include/linux/err.h \
   include/linux/personality.h \
   include/linux/cpumask.h \
@@ -185,12 +185,12 @@ deps_arch/x86/kernel/asm-offsets.s := \
   include/linux/bitmap.h \
   include/linux/string.h \
     $(wildcard include/config/binary/printf.h) \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/string.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/string_64.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/string.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/string_64.h \
   include/linux/cache.h \
     $(wildcard include/config/arch/has/cache/line/size.h) \
   include/linux/stat.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/stat.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/stat.h \
   include/linux/time.h \
   include/linux/seqlock.h \
   include/linux/spinlock.h \
@@ -201,28 +201,28 @@ deps_arch/x86/kernel/asm-offsets.s := \
     $(wildcard include/config/preempt/notifiers.h) \
   include/linux/thread_info.h \
     $(wildcard include/config/compat.h) \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/thread_info.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/thread_info.h \
     $(wildcard include/config/debug/stack/usage.h) \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/ftrace.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/ftrace.h \
     $(wildcard include/config/function/tracer.h) \
     $(wildcard include/config/dynamic/ftrace.h) \
   include/linux/bottom_half.h \
   include/linux/spinlock_types.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/spinlock_types.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/spinlock_types.h \
   include/linux/lockdep.h \
     $(wildcard include/config/lockdep.h) \
     $(wildcard include/config/lock/stat.h) \
     $(wildcard include/config/generic/hardirqs.h) \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/spinlock.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/spinlock.h \
     $(wildcard include/config/paravirt/spinlocks.h) \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/rwlock.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/paravirt.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/rwlock.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/paravirt.h \
     $(wildcard include/config/x86/local/apic.h) \
     $(wildcard include/config/highpte.h) \
     $(wildcard include/config/paravirt/debug.h) \
   include/linux/spinlock_api_smp.h \
   include/linux/math64.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/div64.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/div64.h \
   include/asm-generic/div64.h \
   include/linux/kmod.h \
   include/linux/gfp.h \
@@ -262,64 +262,64 @@ deps_arch/x86/kernel/asm-offsets.s := \
     $(wildcard include/config/rwsem/generic/spinlock.h) \
   include/linux/rwsem-spinlock.h \
   include/linux/srcu.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/mmzone.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/mmzone_64.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/mmzone.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/mmzone_64.h \
     $(wildcard include/config/numa/emu.h) \
   include/linux/mmdebug.h \
     $(wildcard include/config/debug/vm.h) \
     $(wildcard include/config/debug/virtual.h) \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/smp.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/smp.h \
     $(wildcard include/config/x86/io/apic.h) \
     $(wildcard include/config/x86/32/smp.h) \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/mpspec.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/mpspec.h \
     $(wildcard include/config/x86/numaq.h) \
     $(wildcard include/config/mca.h) \
     $(wildcard include/config/eisa.h) \
     $(wildcard include/config/x86/mpparse.h) \
     $(wildcard include/config/acpi.h) \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/mpspec_def.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/apic.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/mpspec_def.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/apic.h \
     $(wildcard include/config/x86/x2apic.h) \
   include/linux/delay.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/delay.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/delay.h \
   include/linux/pm.h \
     $(wildcard include/config/pm/sleep.h) \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/apicdef.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/fixmap.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/apicdef.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/fixmap.h \
     $(wildcard include/config/x86/visws/apic.h) \
     $(wildcard include/config/x86/f00f/bug.h) \
     $(wildcard include/config/x86/cyclone/timer.h) \
     $(wildcard include/config/pci/mmconfig.h) \
     $(wildcard include/config/provide/ohci1394/dma/init.h) \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/acpi.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/acpi.h \
     $(wildcard include/config/acpi/numa.h) \
   include/acpi/pdc_intel.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/numa.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/numa_64.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/mmu.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/vsyscall.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/numa.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/numa_64.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/mmu.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/vsyscall.h \
     $(wildcard include/config/generic/time.h) \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/io_apic.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/irq_vectors.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/io_apic.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/irq_vectors.h \
     $(wildcard include/config/sparse/irq.h) \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/cpumask.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/sparsemem.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/cpumask.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/sparsemem.h \
   include/linux/topology.h \
     $(wildcard include/config/sched/smt.h) \
     $(wildcard include/config/sched/mc.h) \
   include/linux/smp.h \
     $(wildcard include/config/use/generic/smp/helpers.h) \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/topology.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/topology.h \
     $(wildcard include/config/x86/ht.h) \
     $(wildcard include/config/x86/64/acpi/numa.h) \
   include/asm-generic/topology.h \
   include/linux/elf.h \
   include/linux/elf-em.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/elf.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/user.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/user_64.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/auxvec.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/vdso.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/elf.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/user.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/user_64.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/auxvec.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/vdso.h \
   include/linux/kobject.h \
   include/linux/sysfs.h \
   include/linux/kref.h \
@@ -338,7 +338,7 @@ deps_arch/x86/kernel/asm-offsets.s := \
     $(wildcard include/config/rcu/fanout.h) \
     $(wildcard include/config/no/hz.h) \
     $(wildcard include/config/rcu/cpu/stall/detector.h) \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/local.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/local.h \
     $(wildcard include/config/m386.h) \
   include/linux/percpu.h \
     $(wildcard include/config/have/dynamic/per/cpu/area.h) \
@@ -360,14 +360,14 @@ deps_arch/x86/kernel/asm-offsets.s := \
     $(wildcard include/config/ktime/scalar.h) \
   include/linux/jiffies.h \
   include/linux/timex.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/timex.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/tsc.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/timex.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/tsc.h \
     $(wildcard include/config/x86/tsc.h) \
   include/linux/debugobjects.h \
     $(wildcard include/config/debug/objects/free.h) \
   include/trace/kmemtrace.h \
   include/linux/pfn.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/module.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/module.h \
     $(wildcard include/config/m486.h) \
     $(wildcard include/config/m586.h) \
     $(wildcard include/config/m586tsc.h) \
@@ -392,10 +392,10 @@ deps_arch/x86/kernel/asm-offsets.s := \
     $(wildcard include/config/mgeode/lx.h) \
     $(wildcard include/config/4kstacks.h) \
   include/linux/uaccess.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/uaccess.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/uaccess.h \
     $(wildcard include/config/x86/wp/works/ok.h) \
     $(wildcard include/config/x86/intel/usercopy.h) \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/uaccess_64.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/uaccess_64.h \
   include/linux/sched.h \
     $(wildcard include/config/sched/debug.h) \
     $(wildcard include/config/detect/softlockup.h) \
@@ -441,16 +441,16 @@ deps_arch/x86/kernel/asm-offsets.s := \
   include/linux/page-debug-flags.h \
     $(wildcard include/config/page/poisoning.h) \
     $(wildcard include/config/page/debug/something/else.h) \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/cputime.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/cputime.h \
   include/asm-generic/cputime.h \
   include/linux/sem.h \
   include/linux/ipc.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/ipcbuf.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/sembuf.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/ipcbuf.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/sembuf.h \
   include/linux/signal.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/signal.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/signal.h \
   include/asm-generic/signal.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/siginfo.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/siginfo.h \
   include/asm-generic/siginfo.h \
   include/linux/path.h \
   include/linux/pid.h \
@@ -458,18 +458,18 @@ deps_arch/x86/kernel/asm-offsets.s := \
   include/linux/percpu_counter.h \
   include/linux/seccomp.h \
     $(wildcard include/config/seccomp.h) \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/seccomp.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/seccomp_64.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/seccomp.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/seccomp_64.h \
   include/linux/unistd.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/unistd.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/unistd_64.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/ia32_unistd.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/unistd.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/unistd_64.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/ia32_unistd.h \
   include/linux/rtmutex.h \
     $(wildcard include/config/debug/rt/mutexes.h) \
   include/linux/plist.h \
     $(wildcard include/config/debug/pi/list.h) \
   include/linux/resource.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/resource.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/resource.h \
   include/asm-generic/resource.h \
   include/linux/hrtimer.h \
     $(wildcard include/config/high/res/timers.h) \
@@ -491,7 +491,7 @@ deps_arch/x86/kernel/asm-offsets.s := \
     $(wildcard include/config/lock/kernel.h) \
   include/linux/ftrace_irq.h \
     $(wildcard include/config/ftrace/nmi/enter.h) \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/hardirq.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/hardirq.h \
     $(wildcard include/config/x86/mce.h) \
   include/linux/irq.h \
     $(wildcard include/config/s390.h) \
@@ -504,12 +504,12 @@ deps_arch/x86/kernel/asm-offsets.s := \
     $(wildcard include/config/cpumasks/offstack.h) \
   include/linux/irqreturn.h \
   include/linux/irqnr.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/irq.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/irq_regs.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/hw_irq.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/irq.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/irq_regs.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/hw_irq.h \
   include/linux/profile.h \
     $(wildcard include/config/profiling.h) \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/sections.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/sections.h \
   include/asm-generic/sections.h \
   include/linux/suspend.h \
     $(wildcard include/config/vt.h) \
@@ -543,9 +543,9 @@ deps_arch/x86/kernel/asm-offsets.s := \
     $(wildcard include/config/debug/pagealloc.h) \
   include/linux/debug_locks.h \
     $(wildcard include/config/debug/locking/api/selftests.h) \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/pgtable.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/pgtable_64.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/pgtable_64_types.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/pgtable.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/pgtable_64.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/pgtable_64_types.h \
   include/asm-generic/pgtable.h \
   include/linux/page-flags.h \
     $(wildcard include/config/pageflags/extended.h) \
@@ -554,39 +554,39 @@ deps_arch/x86/kernel/asm-offsets.s := \
   include/linux/vmstat.h \
     $(wildcard include/config/vm/event/counters.h) \
   include/linux/kbuild.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/ia32.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/ia32.h \
     $(wildcard include/config/ia32/support.h) \
   include/linux/compat.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/compat.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/user32.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/sigcontext32.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/bootparam.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/compat.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/user32.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/sigcontext32.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/bootparam.h \
   include/linux/screen_info.h \
   include/linux/apm_bios.h \
   include/linux/ioctl.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/ioctl.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/ioctl.h \
   include/asm-generic/ioctl.h \
   include/linux/edd.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/e820.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/e820.h \
     $(wildcard include/config/efi.h) \
     $(wildcard include/config/memtest.h) \
   include/linux/ioport.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/ist.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/ist.h \
   include/video/edid.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/suspend.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/suspend_64.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/desc.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/ldt.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/i387.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/suspend.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/suspend_64.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/desc.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/ldt.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/i387.h \
   include/linux/kernel_stat.h \
   include/linux/regset.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/xsave.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/xsave.h \
   include/xen/interface/xen.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/xen/interface.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/xen/interface_64.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/pvclock-abi.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/sigframe.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/ucontext.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/xen/interface.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/xen/interface_64.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/pvclock-abi.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/sigframe.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/ucontext.h \
 
 arch/x86/kernel/asm-offsets.s: $(deps_arch/x86/kernel/asm-offsets.s)
 

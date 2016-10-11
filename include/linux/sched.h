@@ -175,14 +175,27 @@ extern unsigned long long time_sync_thresh;
  * mistake.
  */
 #define TASK_RUNNING		0
+/* 태스크가 특정한 사건을 기다려야 할 필요가 있을때 
+ * ex) 태스크가 디스크 같은 주변 장치에 요청을 보내고 그 요청이 완료되기 까지 기다리거나,
+ * 사용 중인 시스템 자원 대기 등
+ * TASK_INTERRUPTIBLE - 시그널에 반응 O
+ * TASK_UNINTERRUPTIBLE - 시그널에 반응 X (SIGKILL에도 반응 x) -> TASK_KILLABLE 상태 도입됨 
+ */
 #define TASK_INTERRUPTIBLE	1
 #define TASK_UNINTERRUPTIBLE	2
 #define __TASK_STOPPED		4
+/* 디버거의 ptrace() 호출에 의해 디버깅 되고 있는 상태 */
 #define __TASK_TRACED		8
-/* in tsk->exit_state */
+
+/* in tsk(task)->exit_state */
+/* 태스크에게 할당되어 있던 자원을 대부분 커널에게 반납한 상태. 그러나 자신이 종료된 이유(ex. error번호),
+ * 자신이 사용한 자원의 통계 정보 등을 부모 태스크에게 알려주기 위해 유지되고 있는 상태 
+ * 추후 부모가 wait() 등의 함수를 호출하면 자식 태스크의 상태는 TASK_DEAD(EXIT_DEAD) 상태로 바뀌게된다.
+ */
 #define EXIT_ZOMBIE		16
 #define EXIT_DEAD		32
-/* in tsk->state again */
+
+/* in tsk(task)->state again */
 #define TASK_DEAD		64
 #define TASK_WAKEKILL		128
 
@@ -1155,6 +1168,10 @@ struct task_struct {
 #endif
 
 	unsigned int policy;
+    /* 태스크가 수행될 수 있는 CPU의 번호가 존재 
+     * 이를 이용해 삽입될 런큐를 결정 
+     * cache affinity 최대한 이용 (부모 태스크와 동일한 런큐에 들어간다던지, 대기 상태에서 깨어난 태스크는 대기 전 런큐에 들어간다던지)
+     */
 	cpumask_t cpus_allowed;
 
 #ifdef CONFIG_PREEMPT_RCU
@@ -1166,22 +1183,40 @@ struct task_struct {
 	struct sched_info sched_info;
 #endif
 
+    /* 리눅스 커널에 존재하는 모든 태스크들은 이중 연결 리스트로 연결되어
+     * 이 연결 리스트의 시작은 init_task로부터 시작된다. 
+     */
 	struct list_head tasks;
-	struct plist_node pushable_tasks;
+	
+    struct plist_node pushable_tasks;
 
 	struct mm_struct *mm, *active_mm;
 
-/* task state */
+    /* task state */
 	struct linux_binfmt *binfmt;
 	int exit_state;
 	int exit_code, exit_signal;
 	int pdeath_signal;  /*  The signal sent when the parent dies  */
-	/* ??? */
+	
+    /* linux exec 뿐만 아니라, BSD, SVR4 exec도 지원한다.
+     * 즉, BSD나 SVR4 커널에서 컴파일 된 프로그램도 리눅스에서 재 컴파일 없이 
+     * 수행될 수 있다는 의미이다. 이를 위한 변수이다.
+     */
 	unsigned int personality;
-	unsigned did_exec:1;
+	
+    unsigned did_exec:1;
 	unsigned in_execve:1;	/* Tell the LSMs that the process is doing an
 				 * execve */
-	pid_t pid;
+	
+    /* 
+     * pid = 태스크를 유일하게 구분하는 식별자 
+     * tgid = POSIX 표준에 의하면 '한 프로세스 내의 쓰레드
+     * 동일한 PID를 공유해야 한다'라는 개념을 만족하기 위해서 도입된 것.
+     * 즉, 같은 쓰레드 그룹에서 동일한 값을 가진다. (pid는 각각 값이 다름)
+     * getpid or ps 에서 PID로 뜨는 것은 모두 tgid이다.
+     */
+    
+    pid_t pid;
 	pid_t tgid;
 
 	/* Canary value for the -fstack-protector gcc feature */
@@ -1192,12 +1227,23 @@ struct task_struct {
 	 * older sibling, respectively.  (p->father can be replaced with 
 	 * p->real_parent->pid)
 	 */
+
+    
+    /* 현재 태스크를 생성한 부모 태스크 */
 	struct task_struct *real_parent; /* real parent process */
-	struct task_struct *parent; /* recipient of SIGCHLD, wait4() reports */
-	/*
+
+    /* 현재 부모 태스크 
+	 * 고아 프로세스의 경우 좀비 상태에서 EXIT 상태로 돌아가기 위해서 부모 프로세스에서 
+     * wait로 정보를 얻어가야 한다. 고아 프로세스의 경우 init 태스크로 부모가 변경되게 된다.
+     * 그 해당 정보를 저장하기 위해서 필요한 field 이다.
+     */
+    struct task_struct *parent; /* recipient of SIGCHLD, wait4() reports */
+	
+    /*
 	 * children/sibling forms the list of my natural children
 	 */
-	struct list_head children;	/* list of my children */
+	
+    struct list_head children;	/* list of my children */
 	struct list_head sibling;	/* linkage in my parent's children list */
 	struct task_struct *group_leader;	/* threadgroup leader */
 

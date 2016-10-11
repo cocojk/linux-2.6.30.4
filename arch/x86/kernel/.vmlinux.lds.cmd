@@ -1,4 +1,4 @@
-cmd_arch/x86/kernel/vmlinux.lds := gcc -E -Wp,-MD,arch/x86/kernel/.vmlinux.lds.d  -nostdinc -isystem /usr/lib/gcc/x86_64-linux-gnu/4.8/include -Iinclude  -I/home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include -include include/linux/autoconf.h -D__KERNEL__   -P -C -Ux86_64 -Ux86_64 -D__ASSEMBLY__ -o arch/x86/kernel/vmlinux.lds arch/x86/kernel/vmlinux.lds.S
+cmd_arch/x86/kernel/vmlinux.lds := gcc -E -Wp,-MD,arch/x86/kernel/.vmlinux.lds.d  -nostdinc -isystem /usr/lib/gcc/x86_64-linux-gnu/4.8/include -Iinclude  -I/home/jkr555/linux-2.6.30.4/arch/x86/include -include include/linux/autoconf.h -D__KERNEL__   -P -C -Ux86_64 -Ux86_64 -D__ASSEMBLY__ -o arch/x86/kernel/vmlinux.lds arch/x86/kernel/vmlinux.lds.S
 
 deps_arch/x86/kernel/vmlinux.lds := \
   arch/x86/kernel/vmlinux.lds.S \
@@ -24,13 +24,13 @@ deps_arch/x86/kernel/vmlinux.lds := \
     $(wildcard include/config/pm/trace.h) \
   include/linux/section-names.h \
   include/asm/asm-offsets.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/page_types.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/page_types.h \
     $(wildcard include/config/x86/64.h) \
   include/linux/const.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/page_64_types.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/page_64_types.h \
     $(wildcard include/config/physical/start.h) \
     $(wildcard include/config/flatmem.h) \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/kexec.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/kexec.h \
     $(wildcard include/config/x86/pae.h) \
 
 arch/x86/kernel/vmlinux.lds: $(deps_arch/x86/kernel/vmlinux.lds)

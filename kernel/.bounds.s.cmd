@@ -1,4 +1,4 @@
-cmd_kernel/bounds.s := gcc -Wp,-MD,kernel/.bounds.s.d  -nostdinc -isystem /usr/lib/gcc/x86_64-linux-gnu/4.8/include -Iinclude  -I/home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include -include include/linux/autoconf.h -D__KERNEL__ -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -Werror-implicit-function-declaration -fno-delete-null-pointer-checks -O2 -m64 -mtune=generic -mno-red-zone -mcmodel=kernel -funit-at-a-time -maccumulate-outgoing-args -fstack-protector -fstack-protector-all -pipe -Wno-sign-compare -fno-asynchronous-unwind-tables -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -Wframe-larger-than=1024 -fno-omit-frame-pointer -fno-optimize-sibling-calls -g -pg -Wdeclaration-after-statement -Wno-pointer-sign -fno-strict-overflow -fno-dwarf2-cfi-asm   -D"KBUILD_STR(s)=\#s" -D"KBUILD_BASENAME=KBUILD_STR(bounds)"  -D"KBUILD_MODNAME=KBUILD_STR(bounds)" -D"DEBUG_HASH=49" -D"DEBUG_HASH2=5" -fverbose-asm -S -o kernel/bounds.s kernel/bounds.c
+cmd_kernel/bounds.s := gcc -Wp,-MD,kernel/.bounds.s.d  -nostdinc -isystem /usr/lib/gcc/x86_64-linux-gnu/4.8/include -Iinclude  -I/home/jkr555/linux-2.6.30.4/arch/x86/include -include include/linux/autoconf.h -D__KERNEL__ -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -Werror-implicit-function-declaration -fno-delete-null-pointer-checks -O2 -m64 -mtune=generic -mno-red-zone -mcmodel=kernel -funit-at-a-time -maccumulate-outgoing-args -fstack-protector -fstack-protector-all -pipe -Wno-sign-compare -fno-asynchronous-unwind-tables -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -Wframe-larger-than=1024 -fno-omit-frame-pointer -fno-optimize-sibling-calls -g -pg -Wdeclaration-after-statement -Wno-pointer-sign -fno-strict-overflow -fno-dwarf2-cfi-asm   -D"KBUILD_STR(s)=\#s" -D"KBUILD_BASENAME=KBUILD_STR(bounds)"  -D"KBUILD_MODNAME=KBUILD_STR(bounds)" -D"DEBUG_HASH=49" -D"DEBUG_HASH2=5" -fverbose-asm -S -o kernel/bounds.s kernel/bounds.c
 
 deps_kernel/bounds.s := \
   kernel/bounds.c \
@@ -15,7 +15,7 @@ deps_kernel/bounds.s := \
     $(wildcard include/config/lbd.h) \
     $(wildcard include/config/phys/addr/t/64bit.h) \
     $(wildcard include/config/64bit.h) \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/types.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/types.h \
     $(wildcard include/config/x86/32.h) \
     $(wildcard include/config/x86/64.h) \
     $(wildcard include/config/highmem64g.h) \
@@ -31,8 +31,8 @@ deps_kernel/bounds.s := \
     $(wildcard include/config/arch/supports/optimized/inlining.h) \
     $(wildcard include/config/optimize/inlining.h) \
   include/linux/compiler-gcc4.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/posix_types.h \
-  /home/jkr555/Downloads/linux-2.6.30.4/arch/x86/include/asm/posix_types_64.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/posix_types.h \
+  /home/jkr555/linux-2.6.30.4/arch/x86/include/asm/posix_types_64.h \
   include/linux/mmzone.h \
     $(wildcard include/config/force/max/zoneorder.h) \
     $(wildcard include/config/smp.h) \
