@@ -586,6 +586,9 @@ struct rq {
 	unsigned long nr_load_updates;
 	u64 nr_switches;
 
+    /* 각각 스케줄링 정책에 해당하는 runqueue struct을 나타낸다.
+     * SCHED_DEADLINE은 현재 버전에 존재하지 않기 때문에 struct dl_rq dl 미존재 
+     */
 	struct cfs_rq cfs;
 	struct rt_rq rt;
 

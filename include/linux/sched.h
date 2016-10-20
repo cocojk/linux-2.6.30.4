@@ -32,6 +32,40 @@
 /*
  * Scheduling policies
  */
+
+/* 일반 태스크를 위한 정책 
+ * SCHED_NORMAL - 일반 태스크 정책 CFS scheduler 사용 
+ * SCHED_IDLE - 중요하지 않은 일을 수행하는 태스크가 CPU를 점유하는 것을 막기 위해 가장 낮은 우선순위로 스케줄링 된다.
+ * SCHED_BATCH - 사용자와의 상호 작용이 없는 CPU 중심의 일괄 작업 (batch job) 태스크를 위한 정책 
+ *
+ * CFS(Completely Fair Scheduler) 
+ * 태스크의 우선순위로 고려하여 정해진 '시간 단위'로 봤을 때, 시스템에 존재하는 태스크들에게 공평한 CPU 시간을 할당하는 것 
+ * 태스크는 자신만의 vruntime 값을 가지며 , 이 값은 사용시간과 우선순위를 고려하여 증가된다.
+ * vruntime += physicalruntime * (weight0 / weightcurr) 으로 계산된다.
+ * weight0은 우선순위 0의 가중치를 말한다. 우선순위 가중치는 prio_to_weight에 저장되어 있다. 
+ * RBtree으로 vruntime을 관리하며, 가장 작은 값을 가지는 태스크가 다음번 스케줄링의 대상이 된다.
+ * 각 태스크별로 선점되지 않고 CPU를 사용할 수 있는 시간(타임 슬라이스)이 미리 지정되어 있으며,
+ * 타임 슬라이스가 작은 태스크 간의 빈번한 스케줄링을 막기 위해 스케줄링간 최소 지연 시간도 정의 되어 있다. 
+ * 예를 들어, 타임 슬라이스는 다음과 같이 적용된다.
+ * A : 우선순위 -20 (우선순위 가중치 88761) (nice()로 할당된것 (~20 ~ 19로 우선순위 할당가능, 실제 커널에서는 +120된 값으로 변환))
+ * B : 우선순위 0 (우선순위 가중치 1024)
+ * A의 타임 슬라이스 = '시간 단위' * 88761/(88761+1024) 
+ * B의 타임 슬라이스 = '시간 단위' * 1024/(88761+1024)
+ * 이러한 계산은 sched_slice() 함수에 구현되어 있으며, 
+ * '시간 단위'는 너무 잦은 스케줄링으로 인한 오버헤드를 최소화하기 위해 시스템에 존재하는 태스크의 개수를 고려하며 정해지며, 커널의 _sched_period() 함수에서 계산된다.
+ 
+ * 실시간 태스크를 위한 정책 
+ * SCHED_FIFO - 우선순위가 높은 (값이 작은) 태스크가 독점 
+ * SCHED_RR - 우선순위가 높은 (값지 작은) 태스크가 독점하기는 하나, 같은 우선 순위의 태스크들끼리는 RR으로 수행된다.
+ * SCHED_DEADLINE - EDF(Earliest Deadline First) 사용,(커널 버전 3.14에 추가됨) 
+ * 리눅스 DEADLINE 정책 용어 : '완료시간' deadline, '작업량' runtime, '주기성(초당 30회)' period
+ * EDF를 사용하면, 현재 런큐에 존재하는 태스크들의 runtime과 period를 이용해 작업의 성공 여부를 deterministic하게 결정할 수 있다. (real time에서 중요한 요소 !) 
+ * starvation, 주기성을 갖는 실생활의 많은 프로그램, 제약시간을 가지는 수많은 응용들에 효과적으로 적용가능. 
+ * red black tree로 deadline을 관리한다. 
+ * SCHED_FIFO, SCHED_RR을 위한 우선순위가 높은 태스크 찾는 방법 
+ * rt_prio_array struct의 bitmap field에 우선순위에 해당하는 태스크의 존재 여부를 기록하고, 
+ * queue field에 해당 태스크를 삽입한다. 
+ */
 #define SCHED_NORMAL		0
 #define SCHED_FIFO		1
 #define SCHED_RR		2
@@ -1038,7 +1072,8 @@ struct sched_class {
 };
 
 struct load_weight {
-	unsigned long weight, inv_weight;
+	/* weight는 현재 태스크의 우선순위에 기반한 가중치를 저장한다. (prio_to_weight의 값) */
+    unsigned long weight, inv_weight;
 };
 
 /*
@@ -1059,6 +1094,12 @@ struct sched_entity {
 
 	u64			exec_start;
 	u64			sum_exec_runtime;
+    /* virtualruntime 우선순위를 기반으로 계산된 runtime을 나타내며 다음과 같은 방식으로 계산된다.
+     * 태스크는 자신만의 vruntime 값을 가지며 , 이 값은 사용시간과 우선순위를 고려하여 증가된다.
+     * vruntime += physicalruntime * (weight0 / weightcurr) 으로 계산된다.
+     * weight0은 우선순위 0의 가중치를 말한다. 우선순위 가중치는 prio_to_weight에 저장되어 있다. 
+     * 즉 우선순위가 높을수록 시간이 느리게 흘러가는 것처럼 관리하고, 우선순위가 낮을 수록 시간이 빠르게 흘러가는 것처럼 관리한다. 
+     */
 	u64			vruntime;
 	u64			prev_sum_exec_runtime;
 
@@ -1129,8 +1170,14 @@ struct sched_rt_entity {
 
 struct task_struct {
 	volatile long state;	/* -1 unrunnable, 0 runnable, >0 stopped */
-	void *stack;
-	atomic_t usage;
+	
+    /* thread_union의 thread_info를 가리킨다.
+     * thread_union은 커널 스택과 , thread_info로 구성된다.
+     * thread_info는 context switch 발생시 필요한 hardware context에 대한 정보등을 담고 있다.
+     */
+    void *stack;
+	
+    atomic_t usage;
 	unsigned int flags;	/* per process flags, defined below */
 	unsigned int ptrace;
 
@@ -1144,7 +1191,12 @@ struct task_struct {
 
 	int prio, static_prio, normal_prio;
 	unsigned int rt_priority;
-	const struct sched_class *sched_class;
+	/* 현재 태스크에 해당하는 스케줄링 클래스를 가리킨다.
+     * fair_sched_class (CFS)
+     * rt_sched_class (FIFO&RR)
+     * dl_sched_class (DEADLINE 미구현) 
+     */
+    const struct sched_class *sched_class;
 	struct sched_entity se;
 	struct sched_rt_entity rt;
 
@@ -1167,7 +1219,14 @@ struct task_struct {
 	unsigned int btrace_seq;
 #endif
 
-	unsigned int policy;
+	/* policy - 이 태스크가 어떤 스케줄링 정책을 사용하는지를 나타낸다.
+     * 태스크 = 실시간 태스크 or 일반 태스크 
+     * 실시간 태스크 3개 스케줄링 정책 SCHED_FIFO, SCHED_RR, SCHED_DEADLINE (현재버전 존재x)
+     * 일반 태스크 3개 스케줄링 정책 존재 SCHED_NORMAL, SCHED_IDLE , SCHED_BATCH
+     * policy 값을 보고 실시간 태스크인지, 일반 태스크인지 확인한다.
+     */
+    unsigned int policy;
+   
     /* 태스크가 수행될 수 있는 CPU의 번호가 존재 
      * 이를 이용해 삽입될 런큐를 결정 
      * cache affinity 최대한 이용 (부모 태스크와 동일한 런큐에 들어간다던지, 대기 상태에서 깨어난 태스크는 대기 전 런큐에 들어간다던지)
@@ -1317,7 +1376,20 @@ struct task_struct {
 	struct files_struct *files;
 /* namespaces */
 	struct nsproxy *nsproxy;
-/* signal handlers */
+
+    /* signal handlers 
+     * 시그널은 태스크에게 비동기적인 사건의 발생을 알리는 매커니즘이다.
+     * 태스크가 시그널을 원할히 처리하려면 다음과 같은 3가지 기능을 지원해야 한다.
+     * 1. 다른 태스크에게 시그널 보내기 (sys_kill() system call)
+     * 2. 시그널을 수신  1. signal 2. pending 변수로 처리 
+     * 3. 시그널 handling sighand 변수 (sys_signal() system call)
+     * signal과 pending 차이
+     * 1. signal은 같은 tgid를 공유하는 (같은 쓰레드 그룹)에 속하는 태스크들에게 시그널이 왔을때 수신되는 변수 
+     * 즉, ps 후 kill PID 명령으로 입력되는 곳 
+     * 2. pending은 현재 태스크에게만 전송되는 시그널 
+     * blocked 필드 - 특정 시그널을 받지 않도록 설정 
+     * 시그널 처리는 태스크가 커널 수준에서 사용자 수준 실행 상태로 전이할때 이루어진다.
+     */
 	struct signal_struct *signal;
 	struct sighand_struct *sighand;
 
