@@ -1249,7 +1249,8 @@ struct task_struct {
 	
     struct plist_node pushable_tasks;
 
-	struct mm_struct *mm, *active_mm;
+	/* 태스크의 메모리와 관련된 내용 */
+    struct mm_struct *mm, *active_mm;
 
     /* task state */
 	struct linux_binfmt *binfmt;

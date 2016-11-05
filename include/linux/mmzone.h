@@ -308,7 +308,12 @@ struct zone {
 	/* see spanned/present_pages for more description */
 	seqlock_t		span_seqlock;
 #endif
-	struct free_area	free_area[MAX_ORDER];
+	/* For buddy allocator 
+     * 각각의 index는 해당 free_area가 관리하는 page의 크기(즉, 연속적으로 할당할 수 있는)를 말한다.
+     * 즉, index = 0 일 경우 2^0 = 1 page size 의 크기를 관리하며, index = 1 일 경우 2^1 = 2 page size 의 크기를 관리한다.
+     * 즉, 2^index의 page 크기에 해당하는 것을 관리한다.
+     */
+    struct free_area	free_area[MAX_ORDER];
 
 #ifndef CONFIG_SPARSEMEM
 	/*
@@ -602,16 +607,26 @@ extern struct page *mem_map;
  */
 struct bootmem_data;
 typedef struct pglist_data {
-	struct zone node_zones[MAX_NR_ZONES];
+	/* the zones for this node, ZONE_HIGHMEM, ZONE_NORMAL,ZONE_DMA 
+     * ISA 버스의 경우 정상적인 동작을 위해서 반드시 물리 메모리 중 16MB 이하 부분을 할당해줘야 한다. -> ZONE_DMA,ZONE_DMA32 -> 0 ~ 16MB
+     * 32bit의 경우 리눅스 커널은 3~4GB 공간을 차지(1GB)하기 때문에, 최대 1GB 공간만 차지한다. 따라서 메모리 영역을 일부를 나눈다. 
+     * 즉, ZONE_NORMAL이라는 공간을 둬서 커널에 직접적으로 매핑가능한 영역을 확보한다.  -> 16MB ~ 896MB
+     * 나머지 영역은 커널에 직접적으로 매핑되지 않고 필요할때 동적으로 매핑된다. -> 896MB ~ endif
+     */
+    struct zone node_zones[MAX_NR_ZONES];
+    /* This is the order of zones that allocations are preferred from */
 	struct zonelist node_zonelists[MAX_ZONELISTS];
-	int nr_zones;
+    /* Numer of zones in this node, between 1 and 3 */
+    int nr_zones;
 #ifdef CONFIG_FLAT_NODE_MEM_MAP	/* means !SPARSEMEM */
-	struct page *node_mem_map;
+	/* this is the first page of the struct page array representing each physical frame in the node */
+    struct page *node_mem_map;
 #ifdef CONFIG_CGROUP_MEM_RES_CTLR
 	struct page_cgroup *node_page_cgroup;
 #endif
 #endif
-	struct bootmem_data *bdata;
+	/* This is only of interest to the boot memory allocator */
+    struct bootmem_data *bdata;
 #ifdef CONFIG_MEMORY_HOTPLUG
 	/*
 	 * Must be held any time you expect node_start_pfn, node_present_pages
@@ -622,11 +637,16 @@ typedef struct pglist_data {
 	 */
 	spinlock_t node_size_lock;
 #endif
-	unsigned long node_start_pfn;
+   
+	/* The starting PFN(page frame number) of the node 
+     * A PFN is simply in index within physical memory that is counted in page-sized units 
+     */
+    unsigned long node_start_pfn;  
 	unsigned long node_present_pages; /* total number of physical pages */
 	unsigned long node_spanned_pages; /* total size of physical page
 					     range, including holes */
-	int node_id;
+	/* The Node ID (NID) of the node, starts at 0 */
+    int node_id;
 	wait_queue_head_t kswapd_wait;
 	struct task_struct *kswapd;
 	int kswapd_max_order;

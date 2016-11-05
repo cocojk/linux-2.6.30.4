@@ -4181,6 +4181,11 @@ void __init set_dma_reserve(unsigned long new_dma_reserve)
 }
 
 #ifndef CONFIG_NEED_MULTIPLE_NODES
+/* UMA(uniform memory access) 구조에서는 bank(접근 속도가 같은 메모리의 집합)이 1개만 존재하므로, node(뱅크를 표현하는 구조) 역시 한개만 존재한다.
+ * 해당 노드를 가리키는 변수  : contig_page_data
+ * NUMA(non-uniform memory access) 구조에서는 bank가 복수개 존재하기 때문에, node 역시 복수개 존재한다.
+ * 해당 노드들을 가리키는 변수 : pgdat_list 
+ */
 struct pglist_data __refdata contig_page_data = { .bdata = &bootmem_node_data[0] };
 EXPORT_SYMBOL(contig_page_data);
 #endif

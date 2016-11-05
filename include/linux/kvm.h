@@ -227,7 +227,7 @@ struct kvm_dirty_log {
 	__u32 padding;
 	union {
 		void __user *dirty_bitmap; /* one bit per page */
-		__u64 padding;
+		__u64 padding_64;
 	};
 };
 

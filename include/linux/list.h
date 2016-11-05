@@ -85,6 +85,7 @@ static inline void list_add_tail(struct list_head *new, struct list_head *head)
  * point to each other.
  *
  * This is only for internal list manipulation where we know
+ * prev -> delte node -> next 에서 prev -> next 상태로 변경 
  * the prev/next entries already!
  */
 static inline void __list_del(struct list_head * prev, struct list_head * next)

@@ -47,6 +47,11 @@ struct early_node_data {
 static struct early_node_data mem_data[MAX_NUMNODES] __initdata;
 static nodemask_t memory_less_mask __initdata;
 
+/* UMA(uniform memory access) 구조에서는 bank(접근 속도가 같은 메모리의 집합)이 1개만 존재하므로, node(뱅크를 표현하는 구조) 역시 한개만 존재한다.
+ * 해당 노드를 가리키는 변수  : contig_page_data
+ * NUMA(non-uniform memory access) 구조에서는 bank가 복수개 존재하기 때문에, node 역시 복수개 존재한다.
+ * 해당 노드들을 가리키는 변수 : pgdat_list 
+ */
 pg_data_t *pgdat_list[MAX_NUMNODES];
 
 /*
