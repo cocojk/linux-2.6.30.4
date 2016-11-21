@@ -6,7 +6,8 @@ struct vfsmount;
 
 struct path {
 	struct vfsmount *mnt;
-	struct dentry *dentry;
+	/*  아이노드 객체를 가리키며, 캐시 역할을 한다.*/
+    struct dentry *dentry;
 };
 
 extern void path_get(struct path *);

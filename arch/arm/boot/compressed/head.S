@@ -112,17 +112,24 @@
 #endif
 		.endm
 
+@ .start라는 새로운 section 정의 (#alloc,#execinstr 성질을 가진)
+@ #alloc = allocatable (is loaded into memory at runtime) 
+@ #execinstr = executable section 
 		.section ".start", #alloc, #execinstr
 /*
  * sort out different calling conventions
  */
 		.align
 start:
+@ function 타입의 start symbol 선언. 
 		.type	start,#function
-		.rept	8
+@ mov r0,r0 8번 반복 
+        .rept	8
 		mov	r0, r0
 		.endr
 
+@ b label{f,b} : label로 이동한다. (f,b는 각각 아래,위쪽에 있는 label 의미)
+@ 즉, 앞에 있는 1번 label로 이동하라. 137번 줄 의미
 		b	1f
 		.word	0x016f2818		@ Magic numbers to help the loader
 		.word	start			@ absolute load/run zImage address
@@ -130,12 +137,16 @@ start:
 1:		mov	r7, r1			@ save architecture ID
 		mov	r8, r2			@ save atags pointer
 
+@ ARM2,ARM3 프로세서인지 아닌지 
 #ifndef __ARM_ARCH_2__
 		/*
 		 * Booting from Angel - need to enter SVC mode and disable
 		 * FIQs/IRQs (numeric definitions from angel arm.h source).
 		 * We only do this if we were in user mode on entry.
 		 */
+        @ user mode 10000 / svc mode 10011
+        @ angel bootloader 이용하면 svc 모드로 진입된다(아마?)
+        @ 아닐 경우 not_angel로 jump 
 		mrs	r2, cpsr		@ get current mode
 		tst	r2, #3			@ not user?
 		bne	not_angel
@@ -160,6 +171,16 @@ not_angel:
 		 */
 
 		.text
+        @ adr x,label label의 주소를 x에 저장
+        @ LC0               ->  r1
+        @ __bss_start       ->  r2 (bss start address) linker script에서 값을 결정
+        @ _end              ->  r3 (bss end address) linker script에서 값을 결정
+        @ zreladdr          ->  r4
+        @ _start            ->  r5 
+        @ _got_start        ->  r6
+        @ _got_end          ->  ip(r12)
+        @ user_stack+4096   ->  sp(r13)
+        
 		adr	r0, LC0
 		ldmia	r0, {r1, r2, r3, r4, r5, r6, ip, sp}
 		subs	r0, r0, r1		@ calculate the delta offset
@@ -219,8 +240,10 @@ not_relocated:	mov	r0, #0
 		str	r0, [r2], #4
 		str	r0, [r2], #4
 		str	r0, [r2], #4
-		cmp	r2, r3
-		blo	1b
+		cmp	r2, r3              @ r3 = bss end address 존재.
+		@ branch + LO condition (C==0) 인가
+        @ r2 >= r3이면 C=1로 설정된다. 즉, r2<r3이면 뒤쪽 1 label로 이동
+        blo	1b
 
 		/*
 		 * The C runtime environment should now be setup
@@ -228,13 +251,16 @@ not_relocated:	mov	r0, #0
 		 * pointers, and start decompressing.
 		 */
 		bl	cache_on
-
+        
+        @ stack은 현재 커널 이미지의 마지막에 위치한다. 즉, stack 뒤쪽 영역은 사용되지않은 공간이다.
+        @ 동적 메모리 공간의 시작 주소와 끝 주소를 레지스터 r1,r2에 설정한다. 
+        @ 동적 메모리 공간은 64KB
 		mov	r1, sp			@ malloc space above stack
 		add	r2, sp, #0x10000	@ 64k max
 
 /*
  * Check to see if we will overwrite ourselves.
- *   r4 = final kernel address
+ *   r4 = final kernel address (=zreladdr)
  *   r5 = start of this image
  *   r2 = end of malloc space (and therefore this image)
  * We basically want:
@@ -283,11 +309,16 @@ not_relocated:	mov	r0, #0
 /*
  * We're not in danger of overwriting ourselves.  Do this the simple way.
  *
- * r4     = kernel execution address
- * r7     = architecture ID
+ * r4     = kernel execution address (=zreladdr)
+ * r7     = architecture ID (=L137에서 저장해둠)
  */
 wont_overwrite:	mov	r0, r4
 		mov	r3, r7
+        @ r0 <- zImage가 decompress될 위치 
+        @ r1 <- 64KB malloc memory 시작 위치
+        @ r2 <- 64KB malloc memory 끝 위치 
+        @ r3 <- architecture ID 
+        @ decompress_kernel : zImage의 압축을 풀어주는 서브루틴 
 		bl	decompress_kernel
 		b	call_kernel
 
@@ -390,27 +421,60 @@ __armv3_mpu_cache_on:
 		mcr	p15, 0, r0, c7, c0, 0	@ invalidate whole cache v3
 		mov	pc, lr
 
-__setup_mmu:	sub	r3, r4, #16384		@ Page directory size
+__setup_mmu:
+        @ r3 = zreladdr 존재 (즉, zImage의 압축이 풀릴 영역의 주소를 나타낸다.)
+        @ 페이지 디렉터리는 zreladdr 아래 16KB 영역에 존재 
+        @ arm에서는 페이지 디렉터리가 1MB 주소 공간을 나타냄 
+        @ 4GB 영역을 표시하기 위해서는 페이지 디렉터리가 4096개 필요 (개당 4byte 크기)
+        @ 총 16KB 만큼의 영역이 페이지를 위해서 필요하다 
+        sub	r3, r4, #16384		@ Page directory size 16384 = 16KB
+        @ 페이지 디렉터리 alignment
 		bic	r3, r3, #0xff		@ Align the pointer
 		bic	r3, r3, #0x3f00
 /*
  * Initialise the page tables, turning on the cacheable and bufferable
  * bits for the RAM area only.
  */
-		mov	r0, r3
+        @ 하위 18비트 날리는거 의미 파악 X (아마 하드웨어적인 제약일듯)
+        @ 책 내용에 기반하면 zreladdr = 0x50008000 이다. 따라서 align된 페이지 시작 주소는 0x50004000
+        @ r9 에는 0x50000000가 저장되어 있다. (zreladdr를 포함시키는 물리 주소의 시작 주소)
+		@ 부팅 성능 향상을 위해 zreladdr를 포함하는 영역에서 256MB 영역에 대해서는 cachable,bufferable을 설정한다.
+        mov	r0, r3
 		mov	r9, r0, lsr #18
 		mov	r9, r9, lsl #18		@ start of RAM
+        @ r10 에는 성능 향상을 위해 설정되는 물리 메모리의 끝 주소가 저장되어 있다.
+        @ 즉, 0x60000000
 		add	r10, r9, #0x10000000	@ a reasonable RAM size
-		mov	r1, #0x12
+		@ section entry (페이지 디렉터리)
+        @ [31-20] base address
+        @ [19-12] SBZ
+        @ [11-10] AP
+        @ [9]     0
+        @ [8-5]   domain
+        @ [4]     1
+        @ [3]     C
+        @ [2]     B
+        @ [1]     1
+        @ [0]     0
+        @ 기본 설정은 11 0 0000 1 0 0 1 0 으로 되고, cachable,bufferable은 11 0 0000 1 1 1 1 0 으로 설정된다.
+        mov	r1, #0x12
 		orr	r1, r1, #3 << 10
+        @ r2 = 페이지 디렉터리 end 주소 
 		add	r2, r3, #16384
-1:		cmp	r1, r9			@ if virt > start of RAM
-		orrhs	r1, r1, #0x0c		@ set cacheable, bufferable
-		cmp	r1, r10			@ if virt > end of RAM
-		bichs	r1, r1, #0x0c		@ clear cacheable, bufferable
+1:		cmp	r1, r9			@ if virt > start of RAM (r1 >= r9 일때 carry bit가 켜져서 hs(C==1일때 실행) condition 만족시킨다.)
+                            @ r1 에는 section entry field가 존재하며, 상위 비트에는 base address가 존재하는데, 실제 물리주소랑 값이 일치한다.
+                            @ 즉, 1MB 물리 영역을 나타내는 section entry의 상위비트는 2^20(1MB)가 된다.
+		orrhs	r1, r1, #0x0c		@ set cacheable, bufferable (조건을 만족할 경우 성능 향상 flag set)
+		cmp	r1, r10			@ if virt > end of RAM (성능향상 메모리 끝 주소 이상 일때, flag를 unset 시켜준다.)
+		bichs	r1, r1, #0x0c		@ clear cacheable, bufferable 
+        @ r0 = 현재 가리키는 페이지 디렉터리가 저장되는 물리 주소 , r1 = 페이지 디렉터리 flag 
+        @ 즉, 페이지 디렉터리에 저장한다.
 		str	r1, [r0], #4		@ 1:1 mapping
+        @ 1048576 = 2^20 (1MB) r1에 1MB를 더한다. 즉 , base address를 증가시켜준다. (1MB 기준으로 페이징 되기 때문에)
 		add	r1, r1, #1048576
+        @ r0 가 r2 (end 주소)에 도달했는가? (페이징 init이 완료되었는가?)
 		teq	r0, r2
+        @ 아닐 경우 backward 1 label로 branch
 		bne	1b
 /*
  * If ever we are running from Flash, then we surely want the cache
@@ -430,10 +494,18 @@ __setup_mmu:	sub	r3, r4, #16384		@ Page directory size
 ENDPROC(__setup_mmu)
 
 __armv4_mmu_cache_on:
+        @ lr = cache_on 다음 명령어
 		mov	r12, lr
 		bl	__setup_mmu
 		mov	r0, #0
-		mcr	p15, 0, r0, c7, c10, 4	@ drain write buffer
+        @ mcr p15, <opcode_1> , <Rd> , <CRn>, <CRm> , <opcode_2>
+        @ This instruction acts as an explicit memory barrier.
+        @ It drains the contents of the write buffers of all memory stores occurring in program order before this instruction is completed.
+		@ 즉, 이 명령어 전에 write buffer에서 존재하는 것들 모두 완료시키기 
+        @ r0 = SBZ (shold be zero)
+        mcr	p15, 0, r0, c7, c10, 4	@ drain write buffer
+        @ r0 = SBZ 
+        @ flush = invalidate 시키는 작업 (clean : dirty 된 것들은 write해주는 것)
 		mcr	p15, 0, r0, c8, c7, 0	@ flush I,D TLBs
 		mrc	p15, 0, r0, c1, c0, 0	@ read control reg
 		orr	r0, r0, #0x5000		@ I-cache enable, RR cache replacement
@@ -496,13 +568,18 @@ __common_mmu_cache_on:
 		orr	r0, r0, #0x000d		@ Write buffer, mmu
 #endif
 		mov	r1, #-1
+        @ r3에는 __setup_mmu에서 계산된 page table 시작 주소가 저장되어 있다.
 		mcr	p15, 0, r3, c2, c0, 0	@ load page table pointer
 		mcr	p15, 0, r1, c3, c0, 0	@ load domain access control
 		b	1f
 		.align	5			@ cache line aligned
+        @ r0 에 저장되어 있던 I-cache 활성화, 라운드 로빈 캐시 교체 정책을 설정한다.
 1:		mcr	p15, 0, r0, c1, c0, 0	@ load control register
 		mrc	p15, 0, r0, c1, c0, 0	@ and read it back to
-		sub	pc, lr, r0, lsr #32	@ properly flush pipeline
+		@ The author is trying to prevent the instructions from being executed at the same time.
+        @ Due to the RAW dependency between the second and third instruction, they cannot be executed simultaneously. 
+        @ That's probably what the author intended. 
+        sub	pc, lr, r0, lsr #32	@ properly flush pipeline
 
 /*
  * All code following this line is relocatable.  It is relocated by
@@ -555,17 +632,22 @@ call_kernel:	bl	cache_clean_flush
  *  r12 = corrupted
  */
 
+@ 캐시 켜기는 ARM 아키텍처 버전마다 서로 다르게 구현된다.
+@ 현재 시스템의 ARM 아키텍처 버전에 맞는 캐시 켜기 서브 루틴을 찾아 호출한다.
 call_cache_fn:	adr	r12, proc_types
 #ifdef CONFIG_CPU_CP15
 		mrc	p15, 0, r6, c0, c0	@ get processor ID
 #else
 		ldr	r6, =CONFIG_PROCESSOR_ID
 #endif
+@ ((real_id^match)&mask) == 0일 경우 엔트리가 일치한다.
 1:		ldr	r1, [r12, #0]		@ get value
 		ldr	r2, [r12, #4]		@ get mask
 		eor	r1, r1, r6		@ (real ^ match)
 		tst	r1, r2			@       & mask
+        @ 일치할 경우 cache on 함수를 호출한다.
 		addeq	pc, r12, r3		@ call cache function
+        @ 아닐 경우 다른 proc_types에 맞춰본다.
 		add	r12, r12, #4*5
 		b	1b
 
@@ -724,6 +806,7 @@ proc_types:
  */
 		.align	5
 cache_off:	mov	r3, #12			@ cache_off function
+        @ r3 = proc_types table의 cache off index값 저장 
 		b	call_cache_fn
 
 __armv4_mpu_cache_off:
@@ -745,8 +828,9 @@ __armv3_mpu_cache_off:
 		mov	pc, lr
 
 __armv4_mmu_cache_off:
-		mrc	p15, 0, r0, c1, c0
-		bic	r0, r0, #0x000d
+
+		mrc	p15, 0, r0, c1, c0  @ control reg를 r0에 복사 
+		bic	r0, r0, #0x000d     @ 0x00D -> 1101 0,2,3번 비트 클리어 
 		mcr	p15, 0, r0, c1, c0	@ turn MMU and cache off
 		mov	r0, #0
 		mcr	p15, 0, r0, c7, c7	@ invalidate whole cache v4
@@ -793,6 +877,7 @@ __armv3_mmu_cache_off:
  */
 		.align	5
 cache_clean_flush:
+        @ r3 = proc_types table의 cache flush index값 저장 
 		mov	r3, #16
 		b	call_cache_fn
 
@@ -823,6 +908,8 @@ __fa526_cache_flush:
 __armv6_mmu_cache_flush:
 		mov	r1, #0
 		mcr	p15, 0, r1, c7, c14, 0	@ clean+invalidate D
+        @ BTC(branch target cache) or BTB(branch target buffer) - 점프 타킷 주소를 저장하는 캐시 
+        @ 점프할 타깃 주소를 미리 예측하여 프로세서의 효율을 높이도록 돕는 것. 
 		mcr	p15, 0, r1, c7, c5, 0	@ invalidate I+BTB
 		mcr	p15, 0, r1, c7, c15, 0	@ clean+invalidate unified
 		mcr	p15, 0, r1, c7, c10, 4	@ drain WB

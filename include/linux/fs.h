@@ -715,13 +715,17 @@ struct inode {
 	struct list_head	i_list;
 	struct list_head	i_sb_list;
 	struct list_head	i_dentry;
+    /* inode의 고유한 번호 */
 	unsigned long		i_ino;
 	atomic_t		i_count;
+    /* 이 inode를 가리키고 있는 파일 수 */
 	unsigned int		i_nlink;
 	uid_t			i_uid;
 	gid_t			i_gid;
+    /* 파일이 장치 파일일 경우 디바이스 드라이버의 주 번호를 나타낸다. */
 	dev_t			i_rdev;
 	u64			i_version;
+    /* 이 아이노드 객체에 해당되는 파일의 크기 */
 	loff_t			i_size;
 #ifdef __NEED_I_SIZE_ORDERED
 	seqcount_t		i_size_seqcount;
@@ -732,10 +736,15 @@ struct inode {
 	unsigned int		i_blkbits;
 	blkcnt_t		i_blocks;
 	unsigned short          i_bytes;
+    /* inode가 관리하는 파일의 속성 및 접근 제어 정보 */
 	umode_t			i_mode;
 	spinlock_t		i_lock;	/* i_blocks, i_bytes, maybe i_size */
 	struct mutex		i_mutex;
 	struct rw_semaphore	i_alloc_sem;
+    /* 파일 시스템 관련된 연산을 요청할 경우 사용된다. 각각 파일 시스템마다 구분하기 위해서
+     * regular file의 경우, 파일 시스템마다 실제 I/O 방법이 다르다. 따라서, 이를 구분해줘야 하는데, 이를 위해서 i_op이 존재한다.
+     * 파일 관련된 연산 - file struct의 f_op (file_operations) 각각 파일 마다 구분하기 위해서 (FIFO,regular file,nfs file,device file,socket)
+     */
 	const struct inode_operations	*i_op;
 	const struct file_operations	*i_fop;	/* former ->i_op->default_file_ops */
 	struct super_block	*i_sb;
@@ -908,12 +917,17 @@ struct file {
 	struct path		f_path;
 #define f_dentry	f_path.dentry
 #define f_vfsmnt	f_path.mnt
+    /* 파일 연산이 요청되면 커널은 현재 요청된 파일이 어떤 파일 유형인지를 보고, 
+       각 파일에 적합한 파일 고유 함수를 사용하여 서비스를 제공해야 하는데 이때 사용되는 것
+     */
 	const struct file_operations	*f_op;
-	spinlock_t		f_lock;  /* f_ep_links, f_flags, no IRQ */
+	
+    spinlock_t		f_lock;  /* f_ep_links, f_flags, no IRQ */
 	atomic_long_t		f_count;
 	unsigned int 		f_flags;
 	fmode_t			f_mode;
-	loff_t			f_pos;
+	/* 현재 파일에서 읽거나 쓸 위치 */
+    loff_t			f_pos;
 	struct fown_struct	f_owner;
 	const struct cred	*f_cred;
 	struct file_ra_state	f_ra;

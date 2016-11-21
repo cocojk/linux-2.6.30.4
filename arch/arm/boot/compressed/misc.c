@@ -332,7 +332,8 @@ decompress_kernel(ulg output_start, ulg free_mem_ptr_p, ulg free_mem_ptr_end_p,
 	putstr("Uncompressing Linux...");
 	gunzip();
 	putstr(" done, booting the kernel.\n");
-	return output_ptr;
+	/* return : 압축이 풀린 커널의 크기 */
+    return output_ptr;
 }
 #else
 
