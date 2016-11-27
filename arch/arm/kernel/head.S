@@ -74,18 +74,22 @@
  * crap here - that's what the boot loader (or in extreme, well justified
  * circumstances, zImage) is for.
  */
+    @ .text.head section을 만듬 (ax = allocatable,executable)
 	.section ".text.head", "ax"
 ENTRY(stext)
 	msr	cpsr_c, #PSR_F_BIT | PSR_I_BIT | SVC_MODE @ ensure svc mode
 						@ and irqs disabled
 	mrc	p15, 0, r9, c0, c0		@ get processor id
-	bl	__lookup_processor_type		@ r5=procinfo r9=cpuid
+	
+    bl	__lookup_processor_type		@ output : r5=procinfo r9=cpuid r10=proc_info_list 시작주소
 	movs	r10, r5				@ invalid processor (r5=0)?
 	beq	__error_p			@ yes, error 'p'
-	bl	__lookup_machine_type		@ r5=machinfo
+	
+    bl	__lookup_machine_type		@ r5=machinfo
 	movs	r8, r5				@ invalid machine (r5=0)?
 	beq	__error_a			@ yes, error 'a'
-	bl	__vet_atags
+	
+    bl	__vet_atags
 	bl	__create_page_tables
 
 	/*
@@ -96,8 +100,15 @@ ENTRY(stext)
 	 * turned on, and r0 will hold the CPU control register value.
 	 */
 	ldr	r13, __switch_data		@ address to jump to after
-						@ mmu has been enabled
+	                            @ mmu has been enabled
+
+    @ lr에 __enable_mmu 어드레스를 넣는다. 즉, 나중에 mov pc,lr을 호출하면 __enable_mmu이 호출된다.
 	adr	lr, __enable_mmu		@ return (PIC) address
+    @ __lookup_processor_type에서 구한 proc_info_list 시작 주소에 #PROCINFO_INITFUNC을 더해서, __v6_setup 서브루틴 호출
+    @ PROCINFO_INITFUNC은 arch/arm/kernel/asm-offset.c에서 정의됨
+    @ DEFINE(PROCINFO_INITFUNC,	offsetof(struct proc_info_list, __cpu_flush));
+    @ DEFINE (sym,val)은 sym으로 넘겨받은 변수에 값 val을 저장한다.
+    @ #define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER) - TYPE의 MEMBER 변수의 인덱스를 반환 
 	add	pc, r10, #PROCINFO_INITFUNC
 ENDPROC(stext)
 

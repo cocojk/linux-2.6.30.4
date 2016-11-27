@@ -106,6 +106,7 @@ retry:
 		struct module *owner;
 		void *data;
 
+        
 		if (p->dev > dev || p->dev + p->range - 1 < dev)
 			continue;
 		if (p->range - 1 >= best)

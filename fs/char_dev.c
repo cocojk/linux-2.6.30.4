@@ -48,8 +48,18 @@ static DEFINE_MUTEX(chrdevs_lock);
 
 static struct char_device_struct {
 	struct char_device_struct *next;
-	unsigned int major;
+	/* major number : device driver을 가리키며, minor number : device driver가 지원하는 특정 device를 가리킨다. 
+     * convention 같다. why? character device driver에서는 device driver의 코어가 file_operations을 래핑하는 개념으로 interface를 제공하는데, (cdev에서 해당 값 가짐)
+     * 그 특별한 코어를 찾아가기 위해서 major minor 번호가 모두 사용된다. -> device driver 찾는 것은 chrdevs에서 major minor 번호에 알맞은 cdev를 찾는다. 
+     * chrdevs는 major minor가 다르면, 각각의 객체를 따로 가진다. (__register_chrdev_region 함수를 참고)
+     * 예를 들어, hard disk를 제공하는 device driver에서 partition 개념을 제공하기 위해서는 각각 partition마다 specific한 implementation이 필요하다.
+     * 따라서, 한 device driver에서 이러한 specific한 구현을 모두 포함하는 코드를 작성하며 , 하나의 major number을 사용하며, 각각의 specific은 minor로 구별한다.
+     * 또한, 각각의 구현을 cdev_add를 통해 커널에 등록시킨다. 
+     */
+    unsigned int major;
+    /* minor 시작 주소 */
 	unsigned int baseminor;
+    /* 포함하는 minor 수 즉, baseminor ~ baseminor+minorct-1의 minor 공간을 현재만큼 차지한다. */
 	int minorct;
 	char name[64];
 	struct cdev *cdev;		/* will die */
@@ -102,7 +112,11 @@ __register_chrdev_region(unsigned int major, unsigned int baseminor,
 
 	mutex_lock(&chrdevs_lock);
 
-	/* temporary */
+	/* temporary dynamic allocation을 시키게 되면, chrdev (256개 hash table)중 비어 있는 공간을 할당하게 되는데
+     * 실제로 major가 가질 수 있는 경우의 수는 4096개이며, hash table에서 cluster 형식으로 연결되어 있다. (next 변수가 다음 struct 가르킴) 
+     * 하지만, dynamic allocator을 이용할 경우, cluster을 따라가지 못하며, 만약 hash table이 256개 꽉차 있는 경우라면 할당을 받지 못한다.
+     * (실제로는 cluster 형식으로 할당할 수 있지만 코드상 불가능)
+     */
 	if (major == 0) {
 		for (i = ARRAY_SIZE(chrdevs)-1; i > 0; i--) {
 			if (chrdevs[i] == NULL)
@@ -124,6 +138,12 @@ __register_chrdev_region(unsigned int major, unsigned int baseminor,
 
 	i = major_to_index(major);
 
+    /* minor overlapping bug will be fixed */
+    /* chrdevs에서는 insertion sort와 비슷한 방법으로 같은 index에 등록되는 major들을 major의 크기 순서대로 정렬한다. (if문 최적화)
+     * 아래 코드 bug가 존재하여, 동작의 원리만 설명하면 
+     * 만약, 같은 major가 기존에 등록되어 있는 경우 (minor을 나눠서 device driver을 구성해야 경우 발생) minor의 range가 overlapping 되지 않는지 확인해야 한다. 
+     * 아래 코드는 그런 overlapping을 처리하고, chrdevs clustering을 처리하는 작업을 한다. 
+     */
 	for (cp = &chrdevs[i]; *cp; cp = &(*cp)->next)
 		if ((*cp)->major > major ||
 		    ((*cp)->major == major &&
@@ -150,6 +170,7 @@ __register_chrdev_region(unsigned int major, unsigned int baseminor,
 			goto out;
 		}
 	}
+    /* -------------- bug end -------------- */
 
 	cd->next = *cp;
 	*cp = cd;
@@ -189,6 +210,7 @@ __unregister_chrdev_region(unsigned major, unsigned baseminor, int minorct)
  * @name: the name of the device or driver.
  *
  * Return value is zero on success, a negative error code on failure.
+ * from부터 count 갯수만큼 device number을 할당시킨다. (count의 크기 1당 minor 크기 1에 해당)
  */
 int register_chrdev_region(dev_t from, unsigned count, const char *name)
 {
@@ -198,6 +220,7 @@ int register_chrdev_region(dev_t from, unsigned count, const char *name)
 
 	for (n = from; n < to; n = next) {
 		next = MKDEV(MAJOR(n)+1, 0);
+        /* next는 major를 한단계 씩 증가시켜서 to를 넘을 경우 next를 to로 설정해준다. */
 		if (next > to)
 			next = to;
 		cd = __register_chrdev_region(MAJOR(n), MINOR(n),
@@ -267,20 +290,27 @@ int register_chrdev(unsigned int major, const char *name,
 	char *s;
 	int err = -ENOMEM;
 
+    /* 주번호 할당 */
 	cd = __register_chrdev_region(major, 0, 256, name);
 	if (IS_ERR(cd))
 		return PTR_ERR(cd);
 	
+    /* struct cdev 구조체 할당 */
 	cdev = cdev_alloc();
 	if (!cdev)
 		goto out2;
 
+    /* struct cdev 변수 설정 */
 	cdev->owner = fops->owner;
 	cdev->ops = fops;
 	kobject_set_name(&cdev->kobj, "%s", name);
 	for (s = strchr(kobject_name(&cdev->kobj),'/'); s; s = strchr(s, '/'))
 		*s = '!';
-		
+	
+
+    /*  struct kobj_map *cdev_map 에 현재 cdev 등록
+     *  struct kobj_map *cdev_map은 시스템에 등록된 모든 character device들을 hash로 관리한다. (총 크기 256개, (device는 총 4096개 가능))
+     */
 	err = cdev_add(cdev, MKDEV(cd->major, 0), 256);
 	if (err)
 		goto out;
@@ -363,6 +393,10 @@ static int chrdev_open(struct inode *inode, struct file *filp)
 	p = inode->i_cdev;
 	if (!p) {
 		struct kobject *kobj;
+        /* 현재 file의 major 번호가 같고, minor range가 같은 cdev_map 원소의 minor index
+         * 예를 들어, 현재 file의 major = 1 minor = 2이고, cdev_map에 major = 1 minor = 0~255 가 존재하면 
+         * idx 값은 = 2가 된다. 
+         */
 		int idx;
 		spin_unlock(&cdev_lock);
 		kobj = kobj_lookup(cdev_map, inode->i_rdev, &idx);
@@ -388,10 +422,14 @@ static int chrdev_open(struct inode *inode, struct file *filp)
 		return ret;
 
 	ret = -ENXIO;
+    /* 찾은 cdev의 file_operations을 struct file에 mapping */
 	filp->f_op = fops_get(p->ops);
 	if (!filp->f_op)
 		goto out_cdev_put;
 
+    /* cdev open 실행 후 return 값을 return 
+     * user는 device driver open을 실행했다고 착각하게 된다. 
+     */
 	if (filp->f_op->open) {
 		ret = filp->f_op->open(inode,filp);
 		if (ret)

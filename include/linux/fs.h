@@ -722,7 +722,10 @@ struct inode {
 	unsigned int		i_nlink;
 	uid_t			i_uid;
 	gid_t			i_gid;
-    /* 파일이 장치 파일일 경우 디바이스 드라이버의 주 번호를 나타낸다. */
+    /* 파일이 장치 파일일 경우 디바이스 드라이버의 주 번호 , 부번호를 나타낸다. 
+     * 상위 12bit = 주번호 (4096개)
+     * 하위 20bit = 부번호 
+     */
 	dev_t			i_rdev;
 	u64			i_version;
     /* 이 아이노드 객체에 해당되는 파일의 크기 */
@@ -758,8 +761,13 @@ struct inode {
 	union {
 		struct pipe_inode_info	*i_pipe;
 		struct block_device	*i_bdev;
-		struct cdev		*i_cdev;
+		/* special file open이 일어난 후에 character device file이면 이 변수가 해당 cdev를 가르키게 된다. */
+        struct cdev		*i_cdev;
 	};
+    /* 현재 file의 major 번호가 같고, minor range가 같은 cdev_map 원소의 minor index
+     * 예를 들어, 현재 file의 major = 1 minor = 2이고, cdev_map에 major = 1 minor = 0~255 가 존재하면 
+     * idx 값은 = 2가 된다. 
+     */
 	int			i_cindex;
 
 	__u32			i_generation;

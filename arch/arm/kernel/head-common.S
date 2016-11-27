@@ -155,16 +155,25 @@ ENDPROC(__error)
  */
 __lookup_processor_type:
 	adr	r3, 3f
+
+    @ r3 <- label 3 물리 주소 
+    @ r5 <- __proc_info_end 가상 주소 
+    @ r6 <- __proc_info_begin 가상 주소 
+    @ r7 <- .(location counter) 가상 주소 
 	ldmda	r3, {r5 - r7}
 	sub	r3, r3, r7			@ get offset between virt&phys
 	add	r5, r5, r3			@ convert virt addresses to
 	add	r6, r6, r3			@ physical address space
-1:	ldmia	r5, {r3, r4}			@ value, mask
-	and	r4, r4, r9			@ mask wanted bits
-	teq	r3, r4
-	beq	2f
-	add	r5, r5, #PROC_INFO_SZ		@ sizeof(proc_info_list)
-	cmp	r5, r6
+
+
+1:	ldmia	r5, {r3, r4}    @ value, mask
+                            @ r3 <- cpu_val, r4 <- cpu_mask	
+    and	r4, r4, r9			@ mask wanted bits cpu_mask&CPUID
+	teq	r3, r4              @ cpu_val 값 비교 동일한 경우, 프로세스를 찾음 
+	
+    beq	2f
+	add	r5, r5, #PROC_INFO_SZ   @ sizeof(proc_info_list) 다음 proc_info_list로 넘어감
+	cmp	r5, r6                  @ __proc_info_end 범위를 넘어서면 error 
 	blo	1b
 	mov	r5, #0				@ unknown processor
 2:	mov	pc, lr
@@ -172,6 +181,10 @@ ENDPROC(__lookup_processor_type)
 
 /*
  * This provides a C-API version of the above function.
+ * 
+ * r0 : cpuid 
+ * Retuns:
+ * r0 : proc_info pointer in pyhysical address 
  */
 ENTRY(lookup_processor_type)
 	stmfd	sp!, {r4 - r7, r9, lr}
