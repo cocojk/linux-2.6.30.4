@@ -173,7 +173,8 @@ __v6_setup:
 	mrc	p15, 0, r0, c1, c0, 0		@ read control register
 	bic	r0, r0, r5			@ clear bits them
 	orr	r0, r0, r6			@ set them
-	mov	pc, lr				@ return to head.S:__ret
+	@ jump __enable_mmu
+    mov	pc, lr				@ return to head.S:__ret
 
 	/*
 	 *         V X F   I D LR

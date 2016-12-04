@@ -42,6 +42,7 @@ struct backing_dev_info directly_mappable_cdev_bdi = {
 		BDI_CAP_READ_MAP | BDI_CAP_WRITE_MAP | BDI_CAP_EXEC_MAP),
 };
 
+/* @@ kobject 찾기 위한 look up map */
 static struct kobj_map *cdev_map;
 
 static DEFINE_MUTEX(chrdevs_lock);

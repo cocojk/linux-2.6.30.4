@@ -39,6 +39,10 @@ __switch_data:
 __mmap_switched:
 	adr	r3, __switch_data + 4
 
+    @ __data_loc = 바이너리 파일(binary file)에서 초기화된 데이터 영역의 시작위치 
+    @ _data = 메모리에서 초기화된 데이터 영역의 시작위치 
+    @ 커널이 ROM에서 XIP로 실행될 경우 데이터의 수정이 불가능하기 때문에 데이터 
+    @ 영역을 RAM으로 복사를 해줘야한다. 
 	ldmia	r3!, {r4, r5, r6, r7}
 	cmp	r4, r5				@ Copy data segment if needed
 1:	cmpne	r5, r6
@@ -46,6 +50,7 @@ __mmap_switched:
 	strne	fp, [r5], #4
 	bne	1b
 
+    @ CC (c==) 부호없는 작다. 
 	mov	fp, #0				@ Clear BSS (and zero fp)
 1:	cmp	r6, r7
 	strcc	fp, [r6],#4
@@ -56,7 +61,12 @@ __mmap_switched:
 	str	r1, [r5]			@ Save machine type
 	str	r2, [r6]			@ Save atags pointer
 	bic	r4, r0, #CR_A			@ Clear 'A' bit
-	stmia	r7, {r0, r4}			@ Save control register values
+	@ cr_alignment에 A bit가 활성화된 cp15 c1레지스터 값을 저장하고, 
+    @ cr_no_alignment에 A bit가 비활성화된 cp15 c1레지스터 값을 저장한다. 
+    @ A bit는 data address alignment fault의 허용 유무를 결정하며,
+    @ 이 필드가 '1'로 설정되어 있고 데이터를 접근하려는 주소가 정렬되어 있지 않다면 
+    @ Data abort 트랩이 발생할 것이다. 
+    stmia	r7, {r0, r4}			@ Save control register values
 	b	start_kernel
 ENDPROC(__mmap_switched)
 
@@ -159,7 +169,8 @@ __lookup_processor_type:
     @ r3 <- label 3 물리 주소 
     @ r5 <- __proc_info_end 가상 주소 
     @ r6 <- __proc_info_begin 가상 주소 
-    @ r7 <- .(location counter) 가상 주소 
+    @ r7 <- .(location counter) 가상 주소
+    @ r5 ~ r6 사이에 struct proc_info_list 들의 배열이 저장되어 있다.
 	ldmda	r3, {r5 - r7}
 	sub	r3, r3, r7			@ get offset between virt&phys
 	add	r5, r5, r3			@ convert virt addresses to
@@ -203,7 +214,7 @@ ENDPROC(lookup_processor_type)
 3:	.long	.
 	.long	__arch_info_begin
 	.long	__arch_info_end
-
+    
 /*
  * Lookup machine architecture in the linker-build list of architectures.
  * Note that we can't use the absolute addresses for the __arch_info
@@ -218,9 +229,17 @@ ENDPROC(lookup_processor_type)
 __lookup_machine_type:
 	adr	r3, 3b
 	ldmia	r3, {r4, r5, r6}
-	sub	r3, r3, r4			@ get offset between virt&phys
+    
+    @ MMU가 비활성화 되어 있어서 가상 주소 -> 물리 주소로 바꿔줘야 한다.
+    @ r3 <- label 3 물리 주소 
+    @ r4 <- .(location counter) 가상 주소 
+    @ r5 <- __arch_info_begin 가상 주소 
+    @ r6 <- __arch_info_end 가상 주소 
+	@ r5 ~ r6 사이에 struct machine_desc 배열에 저장되어 있다.
+    sub	r3, r3, r4			@ get offset between virt&phys
 	add	r5, r5, r3			@ convert virt addresses to
 	add	r6, r6, r3			@ physical address space
+
 1:	ldr	r3, [r5, #MACHINFO_TYPE]	@ get machine type
 	teq	r3, r1				@ matches loader number?
 	beq	2f				@ found
@@ -247,7 +266,7 @@ ENDPROC(lookup_machine_type)
  * that the ATAG_CORE marker is first and present.  Future revisions
  * of this function may be more lenient with the physical address and
  * may also be able to move the ATAGS block if necessary.
- *
+ * 
  * r8  = machinfo
  *
  * Returns:
@@ -258,6 +277,8 @@ __vet_atags:
 	tst	r2, #0x3			@ aligned?
 	bne	1f
 
+    @ struct tag의 vaild를 판단. (r2 = struct tag * )
+    @ struct tag의 첫 엘리먼트 hdr의 size와 tag가 올바른지 
 	ldr	r5, [r2, #0]			@ is first tag ATAG_CORE?
 	subs	r5, r5, #ATAG_CORE_SIZE
 	bne	1f
