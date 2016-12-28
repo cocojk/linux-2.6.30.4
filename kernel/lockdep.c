@@ -3293,6 +3293,9 @@ out_restore:
 	raw_local_irq_restore(flags);
 }
 
+/*
+ * 디버깅을 위해 락 간 의존 관계를 기록할 구조체를 초기화 
+ */
 void lockdep_init(void)
 {
 	int i;
@@ -3302,7 +3305,9 @@ void lockdep_init(void)
 	 * code which calls lockdep_init(), while we also
 	 * call lockdep_init() from the start_kernel() itself,
 	 * and we want to initialize the hashes only once:
-	 */
+	 * 특정 아키텍처에서는 자신만의 start_kernel() 함수가 있어서
+     * lockdep_init() 함수가 이미 호출되었을 수도 있기 때문에
+     */
 	if (lockdep_initialized)
 		return;
 

@@ -525,6 +525,10 @@ static void __init boot_cpu_init(void)
 	set_cpu_possible(cpu, true);
 }
 
+/*
+ * weak 애트리뷰트가 지정되지 않은 smp_setup_processor_id() 함수가 존재한다면 수행되지 않는다.
+ * ARM의 경우 존재하지 않기 때문에, 아래 함수가 실행된다 (즉 아무것도 안한다.)
+ */
 void __init __weak smp_setup_processor_id(void)
 {
 }
@@ -544,14 +548,36 @@ asmlinkage void __init start_kernel(void)
 	 * Need to run as early as possible, to initialize the
 	 * lockdep hash:
 	 */
-	lockdep_init();
-	debug_objects_early_init();
+
+    /*
+     * CONFIG_LOCKDEP 정의 여부에 따라 수행되는 코드가 달라진다.
+     * 1. CONFIG_LOCKDEP 정의 X : include/linux/lockdep.h lockdep_init() 실행 
+     * 2. CONFIG_LOCKDEP 정의 O : kernel/lockdep.c lockdep_init() 실행 
+	*/
+    lockdep_init();
+	/*
+     * CONFIG_DEBUG_OBJECTS 정의 여부에 따라 수행되는 코드가 달라진다.
+     * 1. CONFIG_DEBUG_OBJECTS 정의 X : include/linux/debugobjects.h debug_objects_early_init() 실행 
+     * 2. CONFIG_DEBUG_OBJECTS 정의 O : lib/debugobjects.c debug_objects_early_init() 실행 
+     */
+    debug_objects_early_init();
 
 	/*
 	 * Set up the the initial canary ASAP:
-	 */
+	 * 스택 버퍼 오버플로우 공격을 발견하기 위해 사용되는 것으로서
+     * 부팅 시에 스택 상의 카나리(canary) 값을 설정한다.
+     * 악의적인 코드르 수행하기 전에 스택 버퍼 오버플로우를 발견하기 위해 사용된다.
+     * 프로그램 시작시에 무작위로 선택되는 작은 정수 값을 복귀 주소가 저장되는 위치
+     * 바로 앞에 저장한다. 대부분의 버퍼 오버플로우은 낮은 곳에서 높은 곳의 메모리 주소로 
+     * 메모리를 덮어쓰기 때문에, 복귀 주소를 덮어쓰기 위해 반드시 카나리 값도 덮어씌어저야 한다. 
+     * 따라서 복귀 주소를 사용해서 반환하기 전에 카나리 값을 확인하여 공격 여부를 확인할 수 있다.
+     */
 	boot_init_stack_canary();
 
+    /*
+     * cgroup에 대한 초기화는 cgroup_init_early()와 cgroup_init()에서 두 번에 나누어 진행된다.
+     * 이렇게 하는 이유는 부팅 초반에 사용되는 서브시스템이 미리 초기화되어야 하기 때문이다.
+     */
 	cgroup_init_early();
 
 	local_irq_disable();

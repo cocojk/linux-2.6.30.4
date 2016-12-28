@@ -1486,7 +1486,12 @@ struct task_struct {
 	int cpuset_mem_spread_rotor;
 #endif
 #ifdef CONFIG_CGROUPS
-	/* Control Group info protected by css_set_lock */
+	/* 
+     * Control Group info protected by css_set_lock 
+     * css_set 구조체는 태스크가 속한 cgroup(여러개 가능)에 적용된 서브시스템의 설정 정보 
+     * (struct cgroup_subsys_state)의 리시트를 가지고 있어서 설정된 서브시스템을 
+     * 빠르게 참조할 수 있다.
+     */
 	struct css_set *cgroups;
 	/* cg_list protected by css_set_lock and tsk->alloc_lock */
 	struct list_head cg_list;

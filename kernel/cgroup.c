@@ -54,6 +54,7 @@ static DEFINE_MUTEX(cgroup_mutex);
 /* Generate an array of cgroup subsystem pointers */
 #define SUBSYS(_x) &_x ## _subsys,
 
+/* 시스템에 포함된 전체 서브시스템을 나타내는 배열 */
 static struct cgroup_subsys *subsys[] = {
 #include <linux/cgroup_subsys.h>
 };
@@ -75,7 +76,10 @@ struct cgroupfs_root {
 	/* The bitmask of subsystems currently attached to this hierarchy */
 	unsigned long actual_subsys_bits;
 
-	/* A list running through the attached subsystems */
+	/* 
+     * A list running through the attached subsystems 
+     * cgroup_subsys 구조체로 구성 
+     */
 	struct list_head subsys_list;
 
 	/* The root cgroup for this hierarchy */
@@ -137,6 +141,7 @@ struct css_id {
 /* The list of hierarchy roots */
 
 static LIST_HEAD(roots);
+/* cgroup 계층도의 갯수를 나타내는 전역 변수 */
 static int root_count;
 
 /* dummytop is a shorthand for the dummy hierarchy's top cgroup */
@@ -192,7 +197,13 @@ static void cgroup_release_agent(struct work_struct *work);
 static DECLARE_WORK(release_agent_work, cgroup_release_agent);
 static void check_for_release(struct cgroup *cgrp);
 
-/* Link structure for associating css_set objects with cgroups */
+/* 
+ * Link structure for associating css_set objects with cgroups 
+ * 하나의 css_set은 여러개의 cgroup을 가질 수 있고, 
+ * 하나의 cgroup은 여러개의 프로세스를 가질 수 있다. (css_set 여러개를 가질 수 있다.)
+ * 따라서 css_set과 cgroup은 n:m relation을 가지기 때문에 mapping 역활이 필요하다. 
+ * cg_cgroup_link는 해당 역활을 한다. 
+ */
 struct cg_cgroup_link {
 	/*
 	 * List running through cg_cgroup_links associated with a
@@ -223,12 +234,14 @@ static int cgroup_subsys_init_idr(struct cgroup_subsys *ss);
  * chain of tasks off each css_set.  Nests outside task->alloc_lock
  * due to cgroup_iter_start() */
 static DEFINE_RWLOCK(css_set_lock);
+/* 시스템의 전체 css_set 구조체 변수의 갯수 */ 
 static int css_set_count;
 
 /* hash table for cgroup groups. This improves the performance to
  * find an existing css_set */
 #define CSS_SET_HASH_BITS	7
 #define CSS_SET_TABLE_SIZE	(1 << CSS_SET_HASH_BITS)
+/* 시스템의 모든 css_set을 해시 테이블로 구성한 배열 */
 static struct hlist_head css_set_table[CSS_SET_TABLE_SIZE];
 
 static struct hlist_head *css_set_hash(struct cgroup_subsys_state *css[])
@@ -2750,6 +2763,7 @@ static void __init cgroup_init_subsys(struct cgroup_subsys *ss)
 	/* Create the top cgroup state for this subsystem */
 	list_add(&ss->sibling, &rootnode.subsys_list);
 	ss->root = &rootnode;
+    /* rootnodedml
 	css = ss->create(ss, dummytop);
 	/* We don't handle early failures gracefully */
 	BUG_ON(IS_ERR(css));
@@ -2782,24 +2796,44 @@ static void __init cgroup_init_subsys(struct cgroup_subsys *ss)
 int __init cgroup_init_early(void)
 {
 	int i;
+    /* init 태스크가 사용할 css_set 구조체 변수인 init_css_set을 초기화하고
+     * refcount를 1로  설정한다.
+     */
 	atomic_set(&init_css_set.refcount, 1);
 	INIT_LIST_HEAD(&init_css_set.cg_links);
 	INIT_LIST_HEAD(&init_css_set.tasks);
 	INIT_HLIST_NODE(&init_css_set.hlist);
 	css_set_count = 1;
-	init_cgroup_root(&rootnode);
-	root_count = 1;
-	init_task.cgroups = &init_css_set;
+	
+    /* struct cgroupfs_root 변수인 rootnode를 초기화한다. 
+     * rootnode는 어떤 cgroup에도 사용되지 않은 서브시스템을 위해 예약되어 있는 
+     * 가짜 계층도이다.
+     */
+    init_cgroup_root(&rootnode);
+	/* cgroup 계층도의 갯수를 나타내는 전역 변수 */
+    root_count = 1;
 
+    /* init_task에 init_css_set(struct css_set)를 설정한다. */
+    init_task.cgroups = &init_css_set;
+
+    /* struct cg_cgroup_link 초기화 */
 	init_css_set_link.cg = &init_css_set;
 	list_add(&init_css_set_link.cgrp_link_list,
 		 &rootnode.top_cgroup.css_sets);
 	list_add(&init_css_set_link.cg_link_list,
 		 &init_css_set.cg_links);
 
+    /* 
+     *  시스템의 모든 css_set을 해시 테이블로 구성한 배열인 
+     *  css_set_table[]을 초기화한다.
+     */
 	for (i = 0; i < CSS_SET_TABLE_SIZE; i++)
 		INIT_HLIST_HEAD(&css_set_table[i]);
 
+    /* 
+     * 시스템에 포함된 전체 서브시스템 중에서 초기 init(early_init)이 필요한 
+     * cgroup 서브 시스템을 초기화한다.
+     */
 	for (i = 0; i < CGROUP_SUBSYS_COUNT; i++) {
 		struct cgroup_subsys *ss = subsys[i];
 

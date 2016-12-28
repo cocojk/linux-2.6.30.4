@@ -47,7 +47,9 @@ enum cgroup_subsys_id {
 };
 #undef SUBSYS
 
-/* Per-subsystem/per-cgroup state maintained by the system. */
+/* Per-subsystem/per-cgroup state maintained by the system. 
+ * 연결된 cgroup 마다 연결된 서브시스템에 대한 설정을 저장 
+ */
 struct cgroup_subsys_state {
 	/*
 	 * The cgroup that this subsystem is attached to. Useful
@@ -141,6 +143,12 @@ enum {
 	CGRP_WAIT_ON_RMDIR,
 };
 
+/*
+ * control groups 
+ * 프로세스들을 그룹화하여 그룹에게 자원을 분배하거나 제어하는 기능을 제공해준다.
+ * 프로세스들을 그룹화하는 방법만을 제공하는 메커니즘이며, 
+ * 프로세스 그룹을 제어하거나 자원을 분배하는 역할은 서브시스템에서 담당한다.
+ */
 struct cgroup {
 	unsigned long flags;		/* "unsigned long" so bitops work */
 
@@ -198,6 +206,10 @@ struct cgroup {
  * object and speeds up fork()/exit(), since a single inc/dec and a
  * list_add()/del() can bump the reference count on the entire cgroup
  * set for a task.
+ * 프로세서는 하나 이상의 cgroup에 동시에 속할 수 있다.
+ * 만약 하나 이상의 cgroup에 속하게 된다면 태스크가 속한 cgroup과 관련된 cgroup_subsys_state 개수도
+ * 늘어나게 된다. 따라서 이런 경우에 많은 숫자의 cgroup_subsys_state를 빠르고 
+ * 편리하게 참조하기 위해 css_set 이라는 자료구조를 사용한다.
  */
 
 struct css_set {

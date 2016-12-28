@@ -900,6 +900,9 @@ static inline void debug_objects_selftest(void) { }
  * Called during early boot to initialize the hash buckets and link
  * the static object pool objects into the poll list. After this call
  * the object tracker is fully operational.
+ * 디버깅을 위한 자료구조를 초기화 
+ * 이 함수에 의해 초기화된 자료 구조는 오브젝트들의 라이프 타임, 오브젝트를 
+ * 대상으로 수행되는 연산들에 대한 트래킹이 가능해진다.
  */
 void __init debug_objects_early_init(void)
 {
