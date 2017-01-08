@@ -115,8 +115,16 @@ static inline void __unlock_kernel(void)
  */
 void __lockfunc lock_kernel(void)
 {
-	int depth = current->lock_depth+1;
-	if (likely(!depth))
+    /* 
+     *  lock_depth는 BKL의 획득 여부를 나타낸다. 
+     *  초기 값은 -1이고 0이상이면 BKL이 획득되엇다고 본다.
+	 */
+    int depth = current->lock_depth+1;
+	/*
+     * 실질적으로 lock을 획득하는 코드 __lock_kernel()에서 
+     * mutual exclusion을 보장한다.
+     */
+    if (likely(!depth))
 		__lock_kernel();
 	current->lock_depth = depth;
 }

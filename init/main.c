@@ -580,16 +580,32 @@ asmlinkage void __init start_kernel(void)
      */
 	cgroup_init_early();
 
+    /* 
+     * cpu IRQ 비활성화 
+     */
 	local_irq_disable();
-	early_boot_irqs_off();
+	/*
+     * CONFIG_TRACE_IRQ_FLAGS가 정의되어 있을 경우 실행 
+     * early_boot_irqs_enabled 플래그를 끈다. (디버깅 시에 도움을 주기 위한 것)
+     */
+    early_boot_irqs_off();
+
 	early_init_irq_lock_class();
 
 /*
  * Interrupts are still disabled. Do necessary setups, then
  * enable them
  */
-	lock_kernel();
-	tick_init();
+	/*
+     * big kernel lock (BKL)
+     * 초기 리눅스 커널 2.0 버전에서 사용되던 legacy 
+     * 한 순간에 하나의 프로세스만이 커널 리소스에 접근하도록 허용 
+     */
+    lock_kernel();
+	/*
+     * 커널이 클럭 디바이스로부터 오는 이벤트를 처리하기 위한 핸드러를 등록하는 과정 
+     */
+    tick_init();
 	boot_cpu_init();
 	page_address_init();
 	printk(KERN_NOTICE "%s", linux_banner);

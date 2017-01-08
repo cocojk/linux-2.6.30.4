@@ -72,6 +72,8 @@
 #define LOCK_SECTION_END                        \
         ".previous\n\t"
 
+/* 변수가 특정 section에 배치되도록 해준다. arm 전용 compile 옵션 */
+
 #define __lockfunc __attribute__((section(".spinlock.text")))
 
 /*

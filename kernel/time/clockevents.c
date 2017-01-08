@@ -138,7 +138,12 @@ int clockevents_register_notifier(struct notifier_block *nb)
 	int ret;
 
 	spin_lock(&clockevents_lock);
-	ret = raw_notifier_chain_register(&clockevents_chain, nb);
+	/*
+     * struct notifier_block을 clockevents_chain에 등록시킨다.
+     * clockevents_chain은 struct raw_notifier_head로 구성되며 
+     * struct notifier_block chain의 헤드역활을 한다.
+     */
+    ret = raw_notifier_chain_register(&clockevents_chain, nb);
 	spin_unlock(&clockevents_lock);
 
 	return ret;

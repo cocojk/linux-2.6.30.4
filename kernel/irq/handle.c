@@ -543,6 +543,10 @@ void early_init_irq_lock_class(void)
 	struct irq_desc *desc;
 	int i;
 
+    /*
+     * 시스템의 모든 인터럽트 디스크립터는 struct irq_desc irq_desc [NR_IRQS] 
+     * 로 관리되는데 모든 irq_desc의 lock 구조체를 하나의 lock class로 관리하게 설정한다.
+     */
 	for_each_irq_desc(i, desc) {
 		lockdep_set_class(&desc->lock, &irq_desc_lock_class);
 	}
