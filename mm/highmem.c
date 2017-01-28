@@ -409,7 +409,13 @@ static struct page_address_map page_address_maps[LAST_PKMAP];
 
 void __init page_address_init(void)
 {
-	int i;
+	/*
+     * 커널은 HIGHMEM을 page_address_pool을 통해 접근하며, page_address_maps[]를 통해 관리한다.
+     * 하이 메모리 영역은 직접적으로 주소화될 수 없는 메모리 페이지이므로 하이 메모리를 매핑하기 위해서는 kmap()을 사용하고 
+     * HIGHMEM 중 할당된 메모리를 해시 테이블인 page_address_htable로 별도로 관리한다. 
+     */
+
+    int i;
 
 	INIT_LIST_HEAD(&page_address_pool);
 	for (i = 0; i < ARRAY_SIZE(page_address_maps); i++)

@@ -140,29 +140,46 @@ __initcall(ioresources_init);
 
 #endif /* CONFIG_PROC_FS */
 
-/* Return the conflict entry if you can't request it */
+/* 
+ * Return the conflict entry if you can't request it 
+ * struct resource *root에 struct resource *new 삽입하기.
+ * success : NULL , conflict : conflict pointer
+ */
 static struct resource * __request_resource(struct resource *root, struct resource *new)
 {
 	resource_size_t start = new->start;
 	resource_size_t end = new->end;
 	struct resource *tmp, **p;
 
+    /* new start,end 올바른지 확인 */
 	if (end < start)
 		return root;
+    /* new가 root->start , root->end 사이 범위에 포함되는지 확인*/
 	if (start < root->start)
 		return root;
 	if (end > root->end)
 		return root;
+
 	p = &root->child;
+
+    /* sibling은 주소가 커지는 순서대로 order를 가지고 관리된다. */
 	for (;;) {
 		tmp = *p;
+        /* 현재 위치가 비었거나, new가 현재 sibling보다 주소가 앞선 경우 현재 sibling 앞에 삽입 */
 		if (!tmp || tmp->start > end) {
 			new->sibling = tmp;
 			*p = new;
 			new->parent = root;
 			return NULL;
 		}
+
+        /* 다음 sibling */
 		p = &tmp->sibling;
+        
+        /* 
+         * sibling 끼리 overlap 되어 있는지 확인. new가 이전 sibling보다 주소가 큰 것을 이전에 확인했고 
+         * new의 start가 이전 sibling의 end보다 커야지 overlap 되지 않는다. 
+         */
 		if (tmp->end < start)
 			continue;
 		return tmp;
@@ -192,7 +209,7 @@ static int __release_resource(struct resource *old)
  * request_resource - request and reserve an I/O or memory resource
  * @root: root resource descriptor
  * @new: resource descriptor desired by caller
- *
+ * struct resource * root에 struct resource *new Insert 
  * Returns 0 for success, negative error code on error.
  */
 int request_resource(struct resource *root, struct resource *new)

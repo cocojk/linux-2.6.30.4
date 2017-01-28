@@ -355,7 +355,8 @@ static struct machine_desc * __init setup_machine(unsigned int nr)
 
 	/*
 	 * locate machine in the list of supported machines.
-	 */
+	 * machine architecture number을 통해 machine_desc 포인터를 가져오기 
+     */
 	list = lookup_machine_type(nr);
 	if (!list) {
 		printk("Machine configuration botched (nr %d), unable "
@@ -491,6 +492,7 @@ request_standard_resources(struct meminfo *mi, struct machine_desc *mdesc)
 	kernel_data.start   = virt_to_phys(_data);
 	kernel_data.end     = virt_to_phys(_end - 1);
 
+    /* 메모리 bank를 돌아다니면서 Iomem_resource에 resource 추가하기 */
 	for (i = 0; i < mi->nr_banks; i++) {
 		if (mi->bank[i].size == 0)
 			continue;
@@ -709,15 +711,27 @@ void __init setup_arch(char **cmdline_p)
 	if (tags->hdr.tag != ATAG_CORE)
 		tags = (struct tag *)&init_tags;
 
+    /* 머신별로 지정된 정보를 meminfo 구조체에 설정을 하게 된다. */
 	if (mdesc->fixup)
 		mdesc->fixup(mdesc, tags, &from, &meminfo);
 
 	if (tags->hdr.tag == ATAG_CORE) {
+        /* 
+         *  앞에서 머신 디스크립터의 fixup 함수에 의해 meminfo가 이미 설정된 경우 
+         *  ATAG의 mem 설정 정보를 무시하도록 하는 부분 
+         */
 		if (meminfo.nr_banks != 0)
 			squash_mem_tags(tags);
 		save_atags(tags);
 		parse_tags(tags);
 	}
+
+    /* 
+     * arm에서 meminfo를 설정하는 방법 ?
+     * 1. 머신의 fixup 함수에서 설정 
+     * 2. 부트로더의 ATAG_MEM 태그를 전달받아 설정 
+     * 3. 커널 커맨드라인의 "mem = 파라미터"를 이용한 설정 
+     */
 
 	init_mm.start_code = (unsigned long) _text;
 	init_mm.end_code   = (unsigned long) _etext;
@@ -726,14 +740,34 @@ void __init setup_arch(char **cmdline_p)
 
 	memcpy(boot_command_line, from, COMMAND_LINE_SIZE);
 	boot_command_line[COMMAND_LINE_SIZE-1] = '\0';
-	parse_cmdline(cmdline_p, from);
+	/* 
+     *  커맨드 라인 파라미터를 분석하고 처리하는 과정 
+     * 이 정보는 부트로더로부터 넘겨받거나 컴파일 시 정적으로 지정된 값을 가진다. 
+     */
+    parse_cmdline(cmdline_p, from);
+
+    /*
+     * 페이징 관련 준비를 하는 단계. 부트 타임에 사용할 메모리 할당자인 bootmem을 
+     * 초기화하여 부트 타임에 메모리를 페이지 단위로 할당하여 사용할 수 있도록 한다.
+     */
 	paging_init(mdesc);
-	request_standard_resources(&meminfo, mdesc);
+	
+    /*
+     * 플랫폼에 의존적이지 않고 공통적으로 관리되는 리소스 정보를 트리 형태로 구성한다.
+     */
+    request_standard_resources(&meminfo, mdesc);
 
 #ifdef CONFIG_SMP
+    /*
+     * smp 환경에서 cpumaps 중 하나인 cpu_possible_maps를 현재 시스템에 존재하는 코어 번호에 맞게 1로 설정한다.
+     * 즉, smp 환경에서 이용할 수 있는 cpu들의 cpu_possible_maps을 1로 설정한다. (possible이 hotplug 될 수 있는 cpu를 의미한다.)
+     */
 	smp_init_cpus();
 #endif
 
+    /*
+     * arm의 IRQ,ABORT,SVC,UND 모드별로 사용할 스택 공간을 지정한다.
+     */
 	cpu_init();
 
 	/*
@@ -750,6 +784,11 @@ void __init setup_arch(char **cmdline_p)
 	conswitchp = &dummy_con;
 #endif
 #endif
+
+    /*
+     * 인터럽트 및 익셉션 코드가 호출되도록 각 핸들러 코드 및 헬퍼 코드를 
+     * 익셉션 벡터 테이블 베이스 어드레스에 복사하고 cpu 도메인 설정을 한다.
+     */
 	early_trap_init();
 }
 

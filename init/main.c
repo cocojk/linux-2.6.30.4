@@ -606,10 +606,17 @@ asmlinkage void __init start_kernel(void)
      * 커널이 클럭 디바이스로부터 오는 이벤트를 처리하기 위한 핸드러를 등록하는 과정 
      */
     tick_init();
-	boot_cpu_init();
-	page_address_init();
+	/*
+     * init_task를 수행하는 CPU bitmap에 추가하기 
+     */
+    boot_cpu_init();
+	/*
+     * HIGHMEM을 관리하기 위한 init 
+     */
+    page_address_init();
 	printk(KERN_NOTICE "%s", linux_banner);
-	setup_arch(&command_line);
+	/* 아키텍처와 관련된 일련의 일들을 처리 */
+    setup_arch(&command_line);
 	mm_init_owner(&init_mm, &init_task);
 	setup_command_line(command_line);
 	setup_per_cpu_areas();
