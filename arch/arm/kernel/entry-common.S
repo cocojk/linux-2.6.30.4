@@ -49,10 +49,16 @@ ret_fast_syscall:
 fast_work_pending:
 	str	r0, [sp, #S_R0+S_OFF]!		@ returned r0
 work_pending:
+    /*  
+     *  현재 태스크의 thread_info 구조체의 flags 값에 _TIF_NEED_RESCHED이 설정되어 있으면, 
+     *  work_resched로 점프한 다음, schedule 함수를 호출하여 새로운 태스크로 전환한다. 
+     *  예를 들어, nice 명령을 이용하여 우선순위 값을 변경하는 경우나 프로세스 할당 시간을 모두 소비한 경우 
+     */
 	tst	r1, #_TIF_NEED_RESCHED
 	bne	work_resched
 	tst	r1, #_TIF_SIGPENDING
 	beq	no_work_pending
+    /* 시그널이 pending 되어 있는 경우, do_notify_resume을 호출하는 데, 내부적으로 do_signal 함수가 호출된다. */
 	mov	r0, sp				@ 'regs'
 	mov	r2, why				@ 'syscall'
 	bl	do_notify_resume
@@ -66,7 +72,11 @@ work_resched:
 ENTRY(ret_to_user)
 ret_slow_syscall:
 	disable_irq				@ disable interrupts
-	ldr	r1, [tsk, #TI_FLAGS]
+	/* 
+     *  현재 thread_info 구조체의 flags 값을 확인한다. 하위 8비트에 값이 설정되어 있다면 
+     *  work_pending으로 점프한다. 
+     */
+    ldr	r1, [tsk, #TI_FLAGS]
 	tst	r1, #_TIF_WORK_MASK
 	bne	work_pending
 no_work_pending:
@@ -74,12 +84,15 @@ no_work_pending:
 	arch_ret_to_user r1, lr
 
 	@ slow_restore_user_regs
+    /* 앞서 인터럽트 발생시 usr_entry에서 스택에 저장한 유저 컨택스트를 restore한다. */
 	ldr	r1, [sp, #S_PSR]		@ get calling cpsr
 	ldr	lr, [sp, #S_PC]!		@ get pc
 	msr	spsr_cxsf, r1			@ save in spsr_svc
 	ldmdb	sp, {r0 - lr}^			@ get calling r0 - lr
 	mov	r0, r0
+    /* context 저장 전으로 스택 포인터를 restore 한다. */
 	add	sp, sp, #S_FRAME_SIZE - S_PC
+    /* movs pc,lr 은 pc을 lr로 점프 시키고, spsr을 cpsr로 옮긴다. */
 	movs	pc, lr				@ return & move spsr_svc into cpsr
 ENDPROC(ret_to_user)
 

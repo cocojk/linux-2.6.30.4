@@ -116,8 +116,13 @@ static struct irq_desc bad_irq_desc = {
  */
 asmlinkage void __exception asm_do_IRQ(unsigned int irq, struct pt_regs *regs)
 {
-	struct pt_regs *old_regs = set_irq_regs(regs);
+	/* 
+     * 인터럽트가 발생했을 시점에 저장한 컨택스트 struct pt_regs를 per-cpu 변수인 
+     * __irq_regs에 저장하고 이전 값을 반환한다. 
+     */
+    struct pt_regs *old_regs = set_irq_regs(regs);
 
+    /* 현재 태스크의 preempt_count를 HARDIRQ_OFFSET 만큼 증가 시킨다. */
 	irq_enter();
 
 	/*
@@ -127,12 +132,17 @@ asmlinkage void __exception asm_do_IRQ(unsigned int irq, struct pt_regs *regs)
 	if (irq >= NR_IRQS)
 		handle_bad_irq(irq, &bad_irq_desc);
 	else
+    /*
+     * set_irq_handler()를 통해서 등록된 인터럽트 핸들러는 generic_handle_irq()에서 호출된다. 
+     */
 		generic_handle_irq(irq);
 
 	/* AT91 specific workaround */
 	irq_finish(irq);
 
+    /* irq_enter()에서 증가시킨 preempt_count를 다시 감소 시킨다. */
 	irq_exit();
+    /* set_irq_regs(regs)에서 반환한 이전의 컨텍스트 값을 다시 복구 시킨다. */
 	set_irq_regs(old_regs);
 }
 

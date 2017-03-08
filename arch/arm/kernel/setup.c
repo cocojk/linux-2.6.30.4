@@ -766,7 +766,7 @@ void __init setup_arch(char **cmdline_p)
 #endif
 
     /*
-     * arm의 IRQ,ABORT,SVC,UND 모드별로 사용할 스택 공간을 지정한다.
+     * arm의 IRQ,ABORT,UND 모드별로 사용할 스택 공간을 지정한다.
      */
 	cpu_init();
 

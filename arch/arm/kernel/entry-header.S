@@ -37,6 +37,11 @@
 	.endm
 
 	.macro	get_thread_info, rd
+    @ thread_info는 union thread_union을 통해 커널 스택과 공유해서
+    @ 공간을 차지한다. 
+    @ unison thread_union의 총 크기는 2^13 (8KB)이므로 
+    @ logical shift right 13비트를 한 후 logical shift left 13비트를 통해 
+    @ 하위 13비트를 지운 후에 union thread_union의 시작 위치를 알 수 있다.
 	mov	\rd, sp, lsr #13
 	mov	\rd, \rd, lsl #13
 	.endm

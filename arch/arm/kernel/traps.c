@@ -729,8 +729,11 @@ void __init early_trap_init(void)
 
 	/*
 	 * Copy the vectors, stubs and kuser helpers (in entry-armv.S)
-	 * into the vector page, mapped at 0xffff0000, and ensure these
+     * into the vector page, mapped at 0xffff0000, and ensure these
 	 * are visible to the instruction stream.
+	 * vectors : exception 발생시 하드웨어적으로 jump 되는 영역 
+     * stub : vectors에서 jump되어 지는 곳으로 exception 전의 context를 exception 스택에 
+     * 저장하고, 이전 모드와 현재 exception에 알맞은 branch table을 찾아 그 영역으로 jump
 	 */
 	memcpy((void *)vectors, __vectors_start, __vectors_end - __vectors_start);
 	memcpy((void *)vectors + 0x200, __stubs_start, __stubs_end - __stubs_start);
@@ -739,10 +742,12 @@ void __init early_trap_init(void)
 	/*
 	 * Copy signal return handlers into the vector page, and
 	 * set sigreturn to be a pointer to these.
-	 */
+	 * sigreturn_codes는 실제 명령어가 바이너리 형태로 존재한다.
+     */
 	memcpy((void *)KERN_SIGRETURN_CODE, sigreturn_codes,
 	       sizeof(sigreturn_codes));
 
-	flush_icache_range(vectors, vectors + PAGE_SIZE);
+	/* 변경된 메모리 적용 */
+    flush_icache_range(vectors, vectors + PAGE_SIZE);
 	modify_domain(DOMAIN_USER, DOMAIN_CLIENT);
 }

@@ -34,7 +34,8 @@
 	@
 	@ routine called with r0 = irq number, r1 = struct pt_regs *
 	@
-	adrne	lr, 1b
+	/* lr에 1b address 저장 */
+    adrne	lr, 1b
 	bne	asm_do_IRQ
 
 #ifdef CONFIG_SMP
@@ -352,10 +353,39 @@ ENDPROC(__pabt_svc)
 	.macro	usr_entry
  UNWIND(.fnstart	)
  UNWIND(.cantunwind	)	@ don't unwind the user space
+    @ SVC_MODE stack 윗쪽이  높은 주소 
+    @ orig_ro (-1)
+    @ user_cpsr 
+    @ user_pc 
+    @ user_lr 
+    @ user_sp 
+    @ r12 
+    @ r11
+    @ r10 
+    @ r9
+    @ r8 
+    @ r7 
+    @ r6
+    @ r5
+    @ r4 
+    @ r3 
+    @ r2 
+    @ r1 
+    @ r0 (real ro 아마, 이전 모드인 user mode의 r0)
+    
+
+    @ 현재 모드는 SVC 모드이며 exception 발생 전의 모드는 user 모드이다. 
+    @ 따라서, SVC 모드와 user 모드는 r13,r14,cpsr만 각각 가지기 때문에,
+    @ exception을 처리하기 위해서는 user context를 저장해야 한다.
+    @ struct pt_regs = h/w context 의미 
 	sub	sp, sp, #S_FRAME_SIZE
+    @ r1 ~ r12까지 스택에 저장 
 	stmib	sp, {r1 - r12}
 
+    @ r0는 exception 발생 모드의 스택을 가르키며, 이 스택에는 
+    @ exception 발생시의 r0 lr spsr 이 저장되어 있다.
 	ldmia	r0, {r1 - r3}
+    @ struct pt_regs의 ARM_pc 인덱스 의미 
 	add	r0, sp, #S_PC		@ here for interlock avoidance
 	mov	r4, #-1			@  ""  ""     ""        ""
 
@@ -367,11 +397,15 @@ ENDPROC(__pabt_svc)
 	@
 	@  r2 - lr_<exception>, already fixed up for correct return/restart
 	@  r3 - spsr_<exception>
-	@  r4 - orig_r0 (see pt_regs definition in ptrace.h)
+	@  r4 - orig_r0 (see pt_regs definition in ptrace.h)  ?? to do : figure out what it mean
 	@
 	@ Also, separately save sp_usr and lr_usr
 	@
 	stmia	r0, {r2 - r4}
+    @ ^ 의미 : user register 의미
+    @ If ∧ is specified, then the operation is modified. The processor must not be in user or
+    @ system mode. The registers appearing in the register list refer to the user mode versions
+    @ of the registers and writeback must not be specified
 	stmdb	r0, {sp, lr}^
 
 	@
@@ -434,24 +468,34 @@ ENDPROC(__dabt_usr)
 
 	.align	5
 __irq_usr:
-	usr_entry
+	@ user context을 현재 stack에 저장 (SVC_MODE)
+    usr_entry
+    @ ARM에서는 유저 모드에서 시스템 콜이나 어떠한 익셉션 트랩 없이 
+    @ atomic operaetion을 수행할 수 있다. 이 연산을 수행하는 도중에 
+    @ 인터럽트가 발생할 경우는 문제가될 수 있으므로 해당 문제 check 
 	kuser_cmpxchg_check
 
 #ifdef CONFIG_TRACE_IRQFLAGS
 	bl	trace_hardirqs_off
 #endif
+    @ tsk에 현재 struct thread_info 저장 
 	get_thread_info tsk
 #ifdef CONFIG_PREEMPT
-	ldr	r8, [tsk, #TI_PREEMPT]		@ get preempt count
+	@ struct thread_info의 preempt_count를 1 증가시켜 선점 불가능하게 한다.
+    ldr	r8, [tsk, #TI_PREEMPT]		@ get preempt count
 	add	r7, r8, #1			@ increment it
 	str	r7, [tsk, #TI_PREEMPT]
 #endif
 
+    @ 인터럽트 상태를 확인하고, 어떤 인터럽트가 발생했는지 해당 인터럽트 번호를 
+    @ 얻고 asm_do_IRQ() 함수를 호출한다. 일반적인 인터럽트 처리는 여기서 이루어진다.
 	irq_handler
 #ifdef CONFIG_PREEMPT
+    @ 윗 코드에서 preempt_count 1증가시킨 것을 원래 값으로 되돌린다.
 	ldr	r0, [tsk, #TI_PREEMPT]
 	str	r8, [tsk, #TI_PREEMPT]
 	teq	r0, r7
+    @ 주소 0에 r0 write ? (특별한 의미 있을 것 같다.)
 	strne	r0, [r0, -r0]
 #endif
 #ifdef CONFIG_TRACE_IRQFLAGS
@@ -459,6 +503,7 @@ __irq_usr:
 #endif
 
 	mov	why, #0
+    @ 인터럽트가 발생했던 유저 모드로 복귀한다. 
 	b	ret_to_user
  UNWIND(.fnend		)
 ENDPROC(__irq_usr)
@@ -1049,18 +1094,31 @@ vector_\name:
 
 	@
 	@ Prepare for SVC32 mode.  IRQs remain disabled.
-	@
+	@ SVC 모드로 모드 변경 !
 	mrs	r0, cpsr
+    @ xor - associative law 성립 (결합 성립) 
+    @ 따라서, ro ^ (ro ^ SVC_MODE) = (ro ^ \mode) ^ SVC_MODE 
+    @ ro ^ \ro = cpsr 에서 모드 관련 bit = 0으로 모두 set 
+    @ 이후 ^ SVC_MODE = SVC_MODE bit로 set 
+    @ xor 출현 횟수가 odd이면 1 
+    @ => SVC_MODE bit = 1인 경우 odd번 출현, 0인 경우 even번 출현 => SVC_MODE로 set
 	eor	r0, r0, #(\mode ^ SVC_MODE)
 	msr	spsr_cxsf, r0
 
 	@
 	@ the branch table must immediately follow this code
-	@
+	@ 이전 모드(spsr)에 따라서 참조할 branch table이 달리지게 된다.
+    @ lr에 이미 spsr이 들어있으므로 하위 4비트를 통해 이전 모드를 얻은 뒤 
+    @ lr에 이전 모드에 알맞은 branch table을 저장한 후, 
+    @ movs pc, lr을 통해서 jump 
 	and	lr, lr, #0x0f
 	mov	r0, sp
 	ldr	lr, [pc, lr, lsl #2]
-	movs	pc, lr			@ branch to handler in SVC mode
+    @ If Rd or Hd is pc, then the instruction effects a jump to the calculated address. If the
+    @ operation updates the cpsr, then the processor mode must have an spsr; in this case, the
+    @ cpsr is set to the value of the spsr
+	@ spsr을 위에서 SVC_MODE로 설정했기 때문에 movs pc,lr은 SVC_MODE로 변경 + 모드별 핸들러 함수로 jump 기능을 한다.
+    movs	pc, lr			@ branch to handler in SVC mode
 ENDPROC(vector_\name)
 	.endm
 
@@ -1201,7 +1259,8 @@ __stubs_end:
 __vectors_start:
 	swi	SYS_ERROR0
 	b	vector_und + stubs_offset
-	ldr	pc, .LCvswi + stubs_offset
+	/* vector_swi로 jump */
+    ldr	pc, .LCvswi + stubs_offset
 	b	vector_pabt + stubs_offset
 	b	vector_dabt + stubs_offset
 	b	vector_addrexcptn + stubs_offset
